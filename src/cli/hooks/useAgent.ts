@@ -473,15 +473,25 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
       promptCaching?: boolean;
       evictionLimit?: number;
       summarization?: SummarizationConfig;
-      interruptOn?: InterruptOnConfig | undefined;
+      interruptOn?: InterruptOnConfig | null; // null means explicitly no interruptOn (auto-approve)
     } = {}) => {
       const newModel = overrides.model ?? currentModel;
       const newPromptCaching = overrides.promptCaching ?? promptCachingEnabled;
       const newEvictionLimit = overrides.evictionLimit ?? evictionLimit;
       const newSummarization = overrides.summarization ?? summarizationConfig;
-      const newInterruptOn = overrides.interruptOn !== undefined 
-        ? overrides.interruptOn 
-        : (autoApproveEnabled ? undefined : (options.interruptOn ?? DEFAULT_CLI_INTERRUPT_ON));
+      
+      // Handle interruptOn: null = explicit no approval, undefined = use current state
+      let newInterruptOn: InterruptOnConfig | undefined;
+      if (overrides.interruptOn === null) {
+        // Explicitly disable approval (auto-approve mode)
+        newInterruptOn = undefined;
+      } else if (overrides.interruptOn !== undefined) {
+        // Use the provided config
+        newInterruptOn = overrides.interruptOn;
+      } else {
+        // Use current state to determine
+        newInterruptOn = autoApproveEnabled ? undefined : (options.interruptOn ?? DEFAULT_CLI_INTERRUPT_ON);
+      }
 
       agentRef.current = createDeepAgent({
         model: parseModelString(newModel),
@@ -561,8 +571,9 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
     }
     
     // Recreate agent with/without interruptOn config
+    // Use null to explicitly disable approval, or the config to enable it
     recreateAgent({ 
-      interruptOn: enabled ? undefined : (options.interruptOn ?? DEFAULT_CLI_INTERRUPT_ON)
+      interruptOn: enabled ? null : (options.interruptOn ?? DEFAULT_CLI_INTERRUPT_ON)
     });
   }, [recreateAgent, options.interruptOn, respondToApproval]);
 

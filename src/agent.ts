@@ -38,7 +38,7 @@ import { createExecuteTool } from "./tools/execute.ts";
 import { StateBackend } from "./backends/state.ts";
 import { patchToolCalls } from "./utils/patch-tool-calls.ts";
 import { summarizeIfNeeded } from "./utils/summarization.ts";
-import { applyInterruptConfig } from "./utils/approval.ts";
+import { applyInterruptConfig, wrapToolsWithApproval, type ApprovalCallback } from "./utils/approval.ts";
 import type { SummarizationConfig } from "./types.ts";
 
 /**
@@ -342,15 +342,23 @@ export class DeepAgent {
     };
 
     // Create tools with event callback
-    const tools = this.createTools(state, onEvent);
+    let tools = this.createTools(state, onEvent);
 
-    // Note: AI SDK 6 handles approvals natively when needsApproval is set on tools.
-    // The actual approval mechanism is handled by AI SDK internally.
-    // We emit events when approvals are needed, but the approval flow itself
-    // is managed by AI SDK 6's native implementation.
-    // For now, we'll use the tools as-is - AI SDK 6 will handle the approval pause.
-    // The onApprovalRequest callback will be called when AI SDK detects approval needs.
-    // This is a simplified approach - we may need to refine based on actual AI SDK behavior.
+    // Wrap tools with approval checking if interruptOn is configured and callback provided
+    // This intercepts tool execution and requests approval before running
+    const hasInterruptOn = !!this.interruptOn;
+    const hasApprovalCallback = !!options.onApprovalRequest;
+    
+    // Debug logging
+    console.error(`[DEBUG] streamWithEvents - hasInterruptOn: ${hasInterruptOn}, hasApprovalCallback: ${hasApprovalCallback}`);
+    if (this.interruptOn) {
+      console.error(`[DEBUG] interruptOn config:`, JSON.stringify(this.interruptOn));
+    }
+    
+    if (hasInterruptOn && hasApprovalCallback) {
+      console.error(`[DEBUG] Wrapping tools with approval checking`);
+      tools = wrapToolsWithApproval(tools, this.interruptOn, options.onApprovalRequest);
+    }
 
     try {
       // Build streamText options

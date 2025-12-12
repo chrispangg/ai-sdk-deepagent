@@ -27,6 +27,8 @@ export {
 } from "./model-parser.js";
 export {
   applyInterruptConfig,
+  wrapToolsWithApproval,
   hasApprovalTools,
+  type ApprovalCallback,
 } from "./approval.js";
 
