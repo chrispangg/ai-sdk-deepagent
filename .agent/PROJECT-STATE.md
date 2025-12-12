@@ -21,6 +21,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [x] **CLI Interface** - Interactive terminal with Ink (React)
 - [x] **SandboxBackendProtocol** - Execute shell commands in isolated environments (`BaseSandbox`, `LocalSandbox`)
 - [x] **Execute Tool** - Run commands via sandbox backend (auto-added for sandbox backends)
+- [x] **Human-in-the-Loop (HITL)** - Interrupt agent for tool approval/rejection via `interruptOn` config; CLI supports Safe/Auto-approve modes
 
 ---
 
@@ -28,7 +29,6 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 
 ### Critical
 
-- [ ] **Human-in-the-Loop (HITL)** - Interrupt agent for tool approval/rejection
 - [ ] **Checkpointer Support** - Persist agent state between invocations (pause/resume)
 
 ### High Priority
@@ -51,7 +51,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [ ] **Compiled Subagents** - Pre-built runnable subagent instances
 - [x] **readRaw Backend Method** - Raw FileData without line formatting (implemented in all backends)
 - [ ] **Custom Tool Descriptions** - Override default tool descriptions
-- [ ] **Per-Subagent Interrupt Config** - Different HITL rules per subagent
+- [x] **Per-Subagent Interrupt Config** - Different HITL rules per subagent (via `SubAgent.interruptOn`)
 - [ ] **Cache Support** - Response caching via BaseCache
 
 ---

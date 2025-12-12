@@ -14,19 +14,11 @@ This is **ai-sdk-deep-agent**, a TypeScript library implementing "Deep Agents" a
 
 - **Reference implementations**: `.refs/deepagentsjs/` (JS) and `.refs/deepagents/` (Python)
 - **Feature tracker**: `.agent/PROJECT-STATE.md`
-- **Implementation framework**: `.agent/RPI-FRAMEWORK.md`
+- **Implementation framework**: `PLAYBOOK.md`
 
 ### Implementing New Features (RPI Framework)
 
-**Before implementing any feature from `PROJECT-STATE.md`, you MUST read `.agent/RPI-FRAMEWORK.md`** — this document details the Research → Plan → Implement (RPI) framework used in this project.
-
-**Quick summary of RPI**:
-
-1. **Research** — Create `.agent/{feature-name}/research/findings.md` documenting how the system works, reference implementation analysis, and files to modify
-2. **Plan** — Create `.agent/{feature-name}/plan/implementation-plan.md` with exact steps, file names, code snippets, and testing strategy
-3. **Implement** — Execute the plan mechanically, validate, then update `PROJECT-STATE.md`
-
-**Why RPI?** It prevents "AI slop" (low-quality code requiring rework) through intentional context compaction — keeping each phase focused and accurate.
+**Before implementing any feature from `PROJECT-STATE.md`, you MUST read `PLAYBOOK.md`** — this document details the Research → Plan → Implement (RPI) framework used in this project.
 
 **When to use full RPI**:
 
@@ -98,7 +90,8 @@ bun examples/with-custom-tools.ts
    - Built with Ink (React for CLI) - interactive terminal interface
    - Real-time streaming with event visualization
    - Slash commands: `/help`, `/todos`, `/files`, `/read <path>`, `/clear`, `/model <name>`, `/exit`
-   - Feature toggles: `/cache`, `/eviction`, `/summarize`, `/features`
+   - Feature toggles: `/cache`, `/eviction`, `/summarize`, `/approve`, `/features`
+   - Tool approval: Safe mode (default) requires approval for write/edit/execute operations
 
 ### Event System
 
@@ -110,6 +103,7 @@ The `streamWithEvents()` method emits granular events during generation:
 - `todos-changed`: Todo list modifications
 - `file-write-start`, `file-written`, `file-edited`: Filesystem changes
 - `subagent-start`, `subagent-finish`: Subagent delegation
+- `approval-requested`, `approval-response`: Tool approval flow (HITL)
 - `done`: Final state with conversation messages
 - `error`: Error occurred
 
@@ -136,6 +130,64 @@ The `streamWithEvents()` method emits granular events during generation:
    - When conversation exceeds token threshold (170k default), older messages are summarized
    - Keeps recent messages (6 default) intact for context
    - Uses fast model (Haiku) for summarization by default
+
+### Human-in-the-Loop (HITL)
+
+The agent supports tool approval before execution, useful for destructive operations like file writes or command execution.
+
+**Library API:**
+
+```typescript
+import { anthropic } from '@ai-sdk/anthropic';
+import { createDeepAgent } from 'ai-sdk-deep-agent';
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  interruptOn: {
+    execute: true,        // Always require approval
+    write_file: true,     // Always require approval
+    edit_file: {          // Dynamic approval based on arguments
+      shouldApprove: (args) => !args.file_path.startsWith('/tmp/')
+    },
+  },
+});
+
+// Handle approvals via callback
+for await (const event of agent.streamWithEvents({
+  prompt: "Create a config file",
+  onApprovalRequest: async (request) => {
+    console.log(`Approve ${request.toolName}?`, request.args);
+    return true; // or false to deny
+  },
+})) {
+  // Handle events
+}
+```
+
+**CLI Approval Modes:**
+
+The CLI operates in two modes for tool execution:
+
+- **Safe Mode (default)**: Prompts for approval before `execute`, `write_file`, `edit_file`
+  - Status bar shows: 🔴 Safe mode
+  - At approval prompt: `[Y]` approve, `[N]` deny, `[A]` approve all
+
+- **Auto-Approve Mode**: All tool executions proceed without prompts
+  - Status bar shows: 🟢 Auto-approve
+  - Toggle with `/approve` command
+
+```bash
+# Start CLI (Safe mode by default)
+$ bun run cli
+
+# Toggle to Auto-approve mode
+> /approve
+🟢 Auto-approve enabled
+
+# Toggle back to Safe mode
+> /approve
+🔴 Safe mode enabled
+```
 
 ## Key Files
 

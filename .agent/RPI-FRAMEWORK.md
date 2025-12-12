@@ -1,6 +1,6 @@
 # RPI Framework: Research → Plan → Implement
 
-This document provides instructions for AI agents implementing features in this repository using the RPI (Research, Plan, Implement) framework.
+This document provides instructions for AI agents implementing features in this repository using the RPI (Research, Plan, Implement) framework with specialized commands and sub-agents.
 
 ## Why RPI?
 
@@ -11,6 +11,7 @@ The RPI framework prevents "AI slop"—low-quality code that requires significan
 - **Research** → Compresses **truth** (how the system actually works)
 - **Plan** → Compresses **intent** (exactly what changes to make)
 - **Implement** → Executes with **precision** (mechanical application of the plan)
+- **Validate** → Verifies **correctness** (ensures implementation matches plan)
 
 ---
 
@@ -29,23 +30,30 @@ The RPI framework prevents "AI slop"—low-quality code that requires significan
 
 ## Folder Structure
 
-For each feature, create a folder under `.agent/` with three subdirectories:
+All RPI artifacts are stored in `thoughts/shared/` with sequential numbering:
 
 ```
-.agent/
-├── PROJECT-STATE.md          # Feature tracking (update after completion)
-├── feature-example/          # Template structure
-│   ├── research/
-│   ├── plan/
-│   └── implement/
-└── {feature-name}/           # Your feature folder
-    ├── research/
-    │   └── findings.md       # Research output
-    ├── plan/
-    │   └── implementation-plan.md  # Detailed plan
-    └── implement/
-        └── notes.md          # Implementation notes (optional)
+thoughts/shared/
+├── research/
+│   ├── 001_feature-name.md
+│   ├── 002_another-topic.md
+│   └── ...
+├── plans/
+│   ├── 001_feature-implementation.md
+│   ├── 002_refactor-plan.md
+│   └── ...
+├── sessions/
+│   ├── 001_feature-name.md
+│   ├── 002_work-session.md
+│   └── ...
+├── cloud/
+│   ├── 001_azure_production.md
+│   └── ...
+└── costs/
+    └── ...
 ```
+
+**File Naming Convention**: `NNN_descriptive-name.md` where NNN is a 3-digit sequential number (001, 002, etc.)
 
 ---
 
@@ -55,58 +63,83 @@ For each feature, create a folder under `.agent/` with three subdirectories:
 
 Build an accurate understanding of how the system currently works. Identify all relevant files, functions, and code flows necessary for the feature.
 
+### Command
+
+Use `/1_research_codebase` command to conduct comprehensive research.
+
 ### Process
 
-1. **Create research folder**: `.agent/{feature-name}/research/`
+1. **Invoke research command**: `/1_research_codebase`
 
-2. **Explore the codebase** using search tools to find:
-   - Existing implementations of similar patterns
-   - Files that will need modification
-   - Dependencies and interactions
-   - Test patterns used in the codebase
+2. **Decompose research question**:
+   - Break down into composable research areas
+   - Identify specific components, patterns, or concepts
+   - Create research plan using TodoWrite
 
-3. **Check reference implementations** in `.refs/`:
-   - `.refs/deepagentsjs/` — JavaScript reference
-   - `.refs/deepagents/` — Python reference
+3. **Spawn parallel sub-agent tasks**:
+   - **codebase-locator**: Finds WHERE code lives (files, directories, components)
+   - **codebase-analyzer**: Analyzes HOW code works (implementation details, data flow)
+   - **codebase-pattern-finder**: Finds PATTERNS and EXAMPLES (similar implementations, conventions)
 
-4. **Document findings** in `research/findings.md`:
+   Run multiple agents in parallel for different aspects of the research.
+
+4. **Wait for all sub-agents to complete** before synthesizing findings.
+
+5. **Synthesize findings**:
+   - Compile all sub-agent results
+   - Connect findings across components
+   - Include specific file paths and line numbers
+   - Highlight patterns and architectural decisions
+
+6. **Generate research document** with YAML frontmatter:
 
 ```markdown
-# Research: {Feature Name}
+---
+date: 2025-01-15T10:30:00Z
+researcher: Claude
+topic: "Feature Name"
+tags: [research, codebase, relevant-component-names]
+status: complete
+---
 
-## Overview
-Brief description of what this feature does in the reference implementation.
+# Research: Feature Name
 
-## Reference Implementation Analysis
-- Location in reference: `path/to/file`
-- Key functions/classes: `FunctionName`, `ClassName`
-- How it integrates with existing system
+## Research Question
+[Original user query]
 
-## Current Codebase Analysis
-- Related existing code: `src/path/to/relevant.ts`
-- Patterns to follow: (describe existing patterns)
-- Files that will need changes: (list files)
+## Summary
+[High-level findings answering the user's question]
 
-## Dependencies
-- External packages needed (if any)
-- Internal modules this will interact with
+## Detailed Findings
 
-## Key Insights
-- Important implementation details discovered
-- Gotchas or edge cases to handle
-- Differences between reference and our architecture
+### Component/Area 1
+- Finding with reference (file.ext:line)
+- Connection to other components
+- Implementation details
 
-## Questions Resolved
-- Q: How does X work? A: ...
-- Q: Where is Y handled? A: ...
+### Component/Area 2
+...
+
+## Code References
+- `path/to/file.ts:123` - Description of what's there
+- `another/file.ts:45-67` - Description of the code block
+
+## Architecture Insights
+[Patterns, conventions, and design decisions discovered]
+
+## Open Questions
+[Any areas that need further investigation]
 ```
+
+7. **Save research document**: `thoughts/shared/research/NNN_topic.md` (where NNN is next sequential number)
 
 ### Research Quality Checklist
 
 - [ ] Identified all files that need modification
 - [ ] Understood existing patterns in the codebase
-- [ ] Reviewed reference implementation
+- [ ] Reviewed reference implementations (`.refs/deepagentsjs/`, `.refs/deepagents/`)
 - [ ] Documented dependencies and interactions
+- [ ] Used parallel sub-agents for comprehensive coverage
 - [ ] No assumptions—all claims backed by code inspection
 
 ---
@@ -115,92 +148,129 @@ Brief description of what this feature does in the reference implementation.
 
 ### Objective
 
-Transform research findings into a detailed, step-by-step implementation plan that can be executed mechanically.
+Transform research findings into a detailed, step-by-step implementation plan that can be executed mechanically. This is an **interactive, iterative process** with the user.
+
+### Command
+
+Use `/2_create_plan` command to create implementation plans.
 
 ### Process
 
-1. **Create plan folder**: `.agent/{feature-name}/plan/`
+1. **Invoke plan command**: `/2_create_plan`
 
-2. **Write implementation plan** in `plan/implementation-plan.md`:
+2. **Context gathering & initial analysis**:
+   - Read all mentioned files immediately and FULLY
+   - Spawn initial research tasks using sub-agents:
+     - codebase-locator: Find all related files
+     - codebase-analyzer: Understand current implementation
+     - codebase-pattern-finder: Find similar features to model after
+
+3. **Present informed understanding** and ask focused questions requiring human judgment.
+
+4. **Research & discovery**:
+   - Create research todo list using TodoWrite
+   - Spawn parallel sub-tasks for comprehensive research
+   - Wait for ALL sub-tasks to complete
+   - Present findings and design options with pros/cons
+
+5. **Plan structure development**:
+   - Propose implementation phases
+   - Get user buy-in on phasing approach
+
+6. **Write detailed plan** with YAML frontmatter:
 
 ```markdown
-# Implementation Plan: {Feature Name}
+# Feature/Task Name Implementation Plan
 
-## Summary
-One paragraph describing what will be implemented.
+## Overview
+[Brief description of what we're implementing and why]
 
-## Prerequisites
-- [ ] Research phase completed
-- [ ] Dependencies identified: {list}
+## Current State Analysis
+[What exists now, what's missing, key constraints discovered]
 
-## Implementation Steps
+## Desired End State
+[Specification of the desired end state and how to verify it]
 
-### Step 1: {Description}
-**File**: `src/path/to/file.ts`
-**Action**: Create/Modify/Delete
+## What We're NOT Doing
+[Explicitly list out-of-scope items]
 
-```typescript
-// Code to add or modify
-// Be specific—include actual code snippets
-```
+## Implementation Approach
+[High-level strategy and reasoning]
 
-**Validation**: How to verify this step worked
+## Phase 1: Descriptive Name
 
-### Step 2: {Description}
+### Overview
+[What this phase accomplishes]
 
-**File**: `src/path/to/another.ts`
-**Action**: Modify
+### Changes Required:
 
-```typescript
-// Before:
-existing code here
-
-// After:
-modified code here
-```
-
-**Validation**: How to verify this step worked
-
-### Step 3: Export from index
-
-**File**: `src/index.ts`
-**Action**: Modify
+#### 1. Component/File Group
+**File**: `path/to/file.ext`
+**Changes**: [Summary of changes]
 
 ```typescript
-export { NewThing } from './path/to/new-thing';
+// Specific code to add/modify
 ```
+
+### Success Criteria
+
+#### Automated Verification
+
+- [ ] Tests pass: `bun test`
+- [ ] Type checking passes: `bun run typecheck`
+- [ ] Linting passes: `bun run lint`
+
+#### Manual Verification
+
+- [ ] Feature works as expected
+- [ ] Performance is acceptable
+- [ ] No regressions in related features
+
+---
+
+## Phase 2: Descriptive Name
+
+[Similar structure...]
 
 ## Testing Strategy
 
-1. Run existing tests: `bun test`
-2. Add new tests in: `src/path/to/file.test.ts`
-3. Test cases to cover:
-   - Case 1: ...
-   - Case 2: ...
+### Unit Tests
 
-## Rollback Plan
+- [What to test]
+- [Key edge cases]
 
-If implementation fails:
+### Integration Tests
 
-1. Revert changes to: {list files}
-2. Remove new files: {list files}
+- [End-to-end scenarios]
 
-## Post-Implementation
+### Manual Testing Steps
 
-- [ ] Update `PROJECT-STATE.md` (move feature to Implemented)
-- [ ] Run `bun run typecheck`
-- [ ] Run `bun test`
+1. [Specific verification step]
+2. [Another verification step]
+
+## Performance Considerations
+
+[Any performance implications or optimizations needed]
+
+## Migration Notes
+
+[If applicable, how to handle existing data/systems]
 
 ```
+
+7. **Save plan document**: `thoughts/shared/plans/NNN_descriptive-name.md`
+
+8. **Review and iterate** based on user feedback until satisfied.
 
 ### Plan Quality Checklist
 
 - [ ] Every file to modify is explicitly named
 - [ ] Actual code snippets included (not pseudocode)
 - [ ] Steps are sequential and ordered correctly
-- [ ] Each step has a validation method
+- [ ] Each phase has measurable success criteria
 - [ ] Testing strategy is explicit
-- [ ] Human can review and approve the plan
+- [ ] Human has reviewed and approved the plan
+- [ ] All questions resolved before finalizing
 
 ---
 
@@ -210,48 +280,222 @@ If implementation fails:
 
 Execute the plan mechanically. This phase should be straightforward if Research and Plan were done correctly.
 
+### Command
+
+Use `/3_implement_plan` command to implement approved plans.
+
 ### Process
 
-1. **Start fresh context**: Begin implementation with only the plan in context (not the full research)
+1. **Invoke implement command**: `/3_implement_plan thoughts/shared/plans/NNN_plan-name.md`
 
-2. **Execute step by step**:
+2. **Read plan completely**:
+   - Check for any existing checkmarks (- [x])
+   - Read all files mentioned in the plan
+   - **Read files fully** - never use limit/offset parameters
+   - Create todo list to track progress
+
+3. **Execute phase by phase**:
+   - Complete one phase entirely before moving to next
    - Follow the plan exactly
-   - Validate after each step
-   - If a step fails, stop and reassess—do not improvise
+   - Update plan checkboxes as you go
+   - If things don't match the plan, stop and ask:
+     ```
+     Issue in Phase [N]:
+     Expected: [what the plan says]
+     Found: [actual situation]
+     Why this matters: [explanation]
+     
+     How should I proceed?
+     ```
 
-3. **Run validation**:
+4. **Verify after each phase**:
+   - Run all automated checks for that phase
+   - Fix any issues before proceeding
+   - Update progress in both plan and todos
+
+5. **Run final validation**:
    ```bash
    bun run typecheck
    bun test
    ```
 
-4. **Update PROJECT-STATE.md**:
+6. **Update PROJECT-STATE.md**:
    - Move feature from "To Implement" to "Implemented"
    - Add any notes about deviations or limitations
-
-5. **Document any deviations** in `implement/notes.md` (optional):
-
-   ```markdown
-   # Implementation Notes: {Feature Name}
-   
-   ## Deviations from Plan
-   - Step 3 required additional change to X because...
-   
-   ## Issues Encountered
-   - Issue: ...
-   - Resolution: ...
-   
-   ## Future Improvements
-   - Could optimize X by...
-   ```
 
 ### Implementation Quality Checklist
 
 - [ ] All plan steps completed
+- [ ] Plan checkboxes updated with [x]
 - [ ] `bun run typecheck` passes
 - [ ] `bun test` passes
 - [ ] `PROJECT-STATE.md` updated
 - [ ] No improvised changes outside the plan
+
+---
+
+## Phase 4: Validate — Verifying Correctness
+
+### Objective
+
+Verify that the implementation was correctly executed, checking all success criteria and identifying any deviations or issues.
+
+### Command
+
+Use `/4_validate_plan` command to validate implementations.
+
+### Process
+
+1. **Invoke validate command**: `/4_validate_plan`
+
+2. **Context discovery**:
+   - Read the implementation plan completely
+   - Identify what should have changed (files, success criteria)
+   - Spawn parallel research tasks to discover implementation
+
+3. **Systematic validation**:
+   - For each phase: check completion status, run automated verification, assess manual criteria
+   - Document pass/fail status
+   - Investigate root causes of any failures
+
+4. **Generate validation report**:
+
+```markdown
+## Validation Report: Plan Name
+
+### Implementation Status
+✓ Phase 1: Name - Fully implemented
+✓ Phase 2: Name - Fully implemented
+⚠️ Phase 3: Name - Partially implemented (see issues)
+
+### Automated Verification Results
+✓ Build passes
+✓ Tests pass
+✗ Linting issues (3 warnings)
+
+### Code Review Findings
+
+#### Matches Plan:
+- [What was correctly implemented]
+
+#### Deviations from Plan:
+- [Any differences from plan]
+- [Explanation of deviation]
+
+#### Potential Issues:
+- [Any problems discovered]
+
+### Manual Testing Required:
+1. UI functionality:
+   - [ ] Verify feature appears correctly
+   - [ ] Test error states
+
+2. Integration:
+   - [ ] Confirm works with existing components
+   - [ ] Check performance
+
+### Recommendations:
+- [Action items before merge]
+- [Improvements to consider]
+```
+
+### Validation Checklist
+
+- [ ] All phases marked complete are actually done
+- [ ] Automated tests pass
+- [ ] Code follows existing patterns
+- [ ] No regressions introduced
+- [ ] Error handling is robust
+- [ ] Documentation updated if needed
+
+---
+
+## Supporting Workflows
+
+### Save Progress
+
+Use `/5_save_progress` when pausing work mid-implementation:
+
+- Commits meaningful work with WIP commits
+- Updates plan document with progress checkpoint
+- Creates session summary in `thoughts/shared/sessions/NNN_feature.md`
+- Documents current state, blockers, and next steps
+- Provides commands to resume work
+
+### Resume Work
+
+Use `/6_resume_work` when returning to saved work:
+
+- Loads session summary from `thoughts/shared/sessions/`
+- Restores full context (plan, research, recent commits)
+- Rebuilds mental model of where work left off
+- Continues from first unchecked item in plan
+- Handles conflicts if codebase changed
+
+### Define Test Cases
+
+Use `/8_define_test_cases` to create test specifications:
+
+- Uses comment-first DSL approach
+- Follows existing test patterns discovered via codebase-pattern-finder
+- Structures tests with implicit Given-When-Then (blank lines separate phases)
+- Defines comprehensive scenarios: happy paths, edge cases, errors, boundaries, authorization
+
+---
+
+## Specialized Research Commands
+
+### Cloud Infrastructure Research
+
+Use `/7_research_cloud` for cloud deployments (READ-ONLY operations only):
+
+- Analyzes Azure/AWS/GCP infrastructure
+- Uses cloud CLI tools (az, aws, gcloud)
+- Generates infrastructure analysis documents
+- Saves to `thoughts/shared/cloud/NNN_platform_environment.md`
+
+**Safety**: Only executes READ-ONLY operations (list, show, describe, get). Never creates, modifies, or deletes resources.
+
+---
+
+## Sub-Agents Reference
+
+### codebase-locator
+
+**Purpose**: Finds WHERE code lives in the codebase.
+
+**Responsibilities**:
+
+- Find files by topic/feature
+- Categorize findings (implementation, tests, config, docs)
+- Return structured results with full paths
+
+**Use when**: You need to locate files related to a feature or topic.
+
+### codebase-analyzer
+
+**Purpose**: Analyzes HOW code works.
+
+**Responsibilities**:
+
+- Analyze implementation details
+- Trace data flow and function calls
+- Map component relationships
+- Document technical details
+
+**Use when**: You need to understand how existing code functions.
+
+### codebase-pattern-finder
+
+**Purpose**: Finds PATTERNS and EXAMPLES to model after.
+
+**Responsibilities**:
+
+- Find similar implementations
+- Extract code examples
+- Identify conventions (naming, organization, testing)
+
+**Use when**: You need examples or patterns to follow for new code.
 
 ---
 
@@ -260,10 +504,13 @@ Execute the plan mechanically. This phase should be straightforward if Research 
 ### Do's
 
 - ✅ Start each phase with clean context
-- ✅ Use sub-agents for isolated research tasks
+- ✅ Use specialized sub-agents for parallel research
 - ✅ Compress findings into Markdown before moving to next phase
 - ✅ Include actual code snippets in plans
-- ✅ Validate after each implementation step
+- ✅ Validate after each implementation phase
+- ✅ Use sequential numbering for all artifacts
+- ✅ Include YAML frontmatter in documents
+- ✅ Save progress checkpoints when pausing work
 
 ### Don'ts
 
@@ -272,6 +519,8 @@ Execute the plan mechanically. This phase should be straightforward if Research 
 - ❌ Don't improvise during implementation
 - ❌ Don't let context window exceed ~40% with noise
 - ❌ Don't assume—verify everything in the actual code
+- ❌ Don't skip validation phase
+- ❌ Don't forget to update plan checkboxes during implementation
 
 ---
 
@@ -279,29 +528,54 @@ Execute the plan mechanically. This phase should be straightforward if Research 
 
 ```bash
 # 1. Check PROJECT-STATE.md for feature to implement
-# 2. Create feature folder
-mkdir -p .agent/{feature-name}/{research,plan,implement}
 
-# 3. Research phase → output: research/findings.md
-# 4. Plan phase → output: plan/implementation-plan.md  
-# 5. Implement phase → execute plan, update PROJECT-STATE.md
-# 6. Validate
-bun run typecheck && bun test
+# 2. Research phase
+/1_research_codebase
+> [Research question about the feature]
+# Output: thoughts/shared/research/NNN_topic.md
+
+# 3. Plan phase
+/2_create_plan
+> [Task description and requirements]
+# Output: thoughts/shared/plans/NNN_feature-implementation.md
+
+# 4. Implement phase
+/3_implement_plan thoughts/shared/plans/NNN_feature-implementation.md
+# Updates plan checkboxes, implements code
+
+# 5. Validate phase
+/4_validate_plan
+# Generates validation report
+
+# 6. Update PROJECT-STATE.md
+# Move feature to "Implemented" section
 ```
 
 ---
 
-## Example: Implementing "Execute Tool"
+## Example: Implementing a Feature
 
-See `.agent/feature-example/` for the folder structure template.
+1. **Research**: `/1_research_codebase`
+   - Spawns codebase-locator, codebase-analyzer, pattern-finder in parallel
+   - Examines reference implementations in `.refs/`
+   - Generates `thoughts/shared/research/001_feature-name.md`
 
-A real implementation would follow this flow:
+2. **Plan**: `/2_create_plan`
+   - Uses research findings
+   - Iterates with user on approach
+   - Generates `thoughts/shared/plans/001_feature-implementation.md`
 
-1. **Research**: Examine how `.refs/deepagentsjs/` implements the execute tool, understand the SandboxBackendProtocol interface, identify where tools are defined in `src/tools/`
+3. **Implement**: `/3_implement_plan thoughts/shared/plans/001_feature-implementation.md`
+   - Follows plan step-by-step
+   - Updates checkboxes as work completes
+   - Runs validation after each phase
 
-2. **Plan**: Detail exact files to create/modify, include TypeScript interfaces, specify test cases
+4. **Validate**: `/4_validate_plan`
+   - Verifies all success criteria met
+   - Generates validation report
+   - Identifies any issues or deviations
 
-3. **Implement**: Create files, run tests, update PROJECT-STATE.md
+5. **Update PROJECT-STATE.md**: Move feature to "Implemented"
 
 ---
 
@@ -324,3 +598,32 @@ If a feature cannot be implemented due to AI SDK limitations:
 ## ❌ Won't Support (AI SDK Limitations)
 - **Feature Name** - Reason why it cannot be supported
 ```
+
+---
+
+## Integration with AGENTS.md
+
+This RPI framework integrates with the project's agent architecture described in `AGENTS.md`:
+
+- Uses DeepAgent's `task` tool to spawn sub-agents
+- Leverages virtual filesystem for research artifacts
+- Maintains todo lists via `write_todos` tool
+- Supports multi-turn conversations for iterative planning
+
+---
+
+## File Organization Summary
+
+```
+thoughts/shared/
+├── research/          # Research findings (NNN_topic.md)
+├── plans/            # Implementation plans (NNN_feature.md)
+├── sessions/         # Work session summaries (NNN_feature.md)
+├── cloud/            # Cloud infrastructure analysis
+└── costs/            # Cost analysis reports
+
+.agent/
+└── PROJECT-STATE.md  # Feature tracking (update after completion)
+```
+
+All artifacts use sequential numbering (001, 002, 003...) and include YAML frontmatter for metadata.
