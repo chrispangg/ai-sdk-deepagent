@@ -74,21 +74,21 @@ If working from a plan, update it with:
 # To continue exactly where we left off:
 cd /path/to/repo
 git status
-/4_implement_plan thoughts/shared/plans/feature.md
+/3_implement_plan thoughts/NNN_topic/plan.md
 ```
 
 ```
 
 ### Step 4: Create Session Summary
 
-Check existing session files to determine next sequence number, then save to `thoughts/shared/sessions/NNN_feature.md` where NNN is a 3-digit sequential number (001, 002, etc.):
+Check existing session files to determine next sequence number, then save to `thoughts/sessions/NNN_feature.md` where NNN is a 3-digit sequential number (001, 002, etc.):
 
 ```markdown
 ---
 date: [ISO timestamp]
 feature: [Feature name]
-plan: thoughts/shared/plans/[plan].md
-research: thoughts/shared/research/[research].md
+plan: thoughts/NNN_topic/plan.md
+research: thoughts/NNN_topic/research.md
 status: in_progress
 last_commit: [git hash]
 ---
@@ -171,11 +171,11 @@ To continue this work:
    ```
    ✅ Progress saved successfully!
 
-   📁 Session summary: thoughts/shared/sessions/[...]
-   📋 Plan updated: thoughts/shared/plans/[...]
+   📁 Session summary: thoughts/sessions/[...]
+   📋 Plan updated: thoughts/NNN_topic/plan.md
    💾 Commits created: [list]
 
-   To resume: /6_resume_work thoughts/shared/sessions/[...]
+   To resume: /6_resume_work thoughts/sessions/[...]
    ```
 
 ## Important Guidelines

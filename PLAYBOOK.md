@@ -60,8 +60,8 @@ cp -r thoughts your-repo/
 /2_create_plan
 > I need to add two-factor authentication
 
-/4_implement_plan
-> thoughts/shared/plans/two_factor_auth.md
+/3_implement_plan
+> thoughts/NNN_two_factor_auth/plan.md
 ```
 
 **Test-Driven Approach:**
@@ -94,15 +94,13 @@ your-repo/
 │       ├── 7_research_cloud.md  # Cloud infrastructure analysis
 │       └── 8_define_test_cases.md # Design acceptance test cases
 ├── thoughts/                     # Persistent Context Storage
-│   └── shared/
-│       ├── research/            # Research findings
-│       │   └── YYYY-MM-DD_*.md
-│       ├── plans/               # Implementation plans
-│       │   └── feature_name.md
-│       ├── sessions/            # Work session summaries
-│       │   └── YYYY-MM-DD_*.md
-│       └── cloud/               # Cloud infrastructure analyses
-│           └── platform_*.md
+│   ├── 001_feature-name/        # Feature folders
+│   │   ├── plan.md
+│   │   └── research.md
+│   ├── sessions/                # Work session summaries
+│   │   └── NNN_feature.md
+│   └── cloud/                   # Cloud infrastructure analyses
+│       └── NNN_platform.md
 └── CLAUDE.md                    # Project-specific instructions
 ```
 
@@ -117,7 +115,7 @@ your-repo/
 1. Invoke command with research question
 2. AI spawns parallel agents to investigate
 3. Findings compiled into structured document
-4. Saved to `thoughts/shared/research/`
+4. Saved to `thoughts/NNN_topic/research.md` (creates folder if needed)
 
 **Example**:
 
@@ -142,7 +140,7 @@ your-repo/
 1. Read requirements and research
 2. Interactive planning with user
 3. Generate phased approach
-4. Save to `thoughts/shared/plans/`
+4. Save to `thoughts/NNN_descriptive-name/plan.md` (creates folder if needed)
 
 **Example**:
 
@@ -187,8 +185,8 @@ your-repo/
 **Example**:
 
 ```
-/4_implement_plan
-> thoughts/shared/plans/stripe_integration.md
+/3_implement_plan
+> thoughts/NNN_stripe_integration/plan.md
 ```
 
 **Progress Tracking**:
@@ -319,7 +317,7 @@ The framework supports saving and resuming work through persistent documentation
 - **Purpose**: Save work progress and context
 - **Input**: Current work state
 - **Output**: Session summary and checkpoint
-- **Creates**: `thoughts/shared/sessions/` document
+- **Creates**: `thoughts/sessions/` document
 
 ### `/6_resume_work`
 
@@ -337,7 +335,7 @@ When you need to pause work:
 > Need to stop working on the payment feature
 
 # Creates:
-- Session summary in thoughts/shared/sessions/
+- Session summary in thoughts/sessions/
 - Progress checkpoint in the plan
 - Work status documentation
 ```
@@ -348,7 +346,7 @@ To continue where you left off:
 
 ```
 /6_resume_work
-> thoughts/shared/sessions/2025-01-06_payment_feature.md
+> thoughts/sessions/2025-01-06_payment_feature.md
 
 # Restores:
 - Full context from session
@@ -384,7 +382,7 @@ This enables seamless context switching between features or across days/weeks.
 - **Purpose**: Analyze cloud infrastructure (READ-ONLY)
 - **Input**: Cloud platform and focus area
 - **Output**: Infrastructure analysis document
-- **Creates**: `thoughts/shared/cloud/` documents
+- **Creates**: `thoughts/cloud/` documents
 
 ### `/8_define_test_cases`
 
@@ -468,7 +466,7 @@ This enables seamless context switching between features or across days/weeks.
 Run `cli thoughts sync`
 
 # After (Generic)
-Save to thoughts/shared/research/
+Save to thoughts/NNN_topic/research.md
 ```
 
 2. **Adjust tool commands:**
@@ -575,8 +573,8 @@ For complex features, chain commands:
 /2_create_plan
 > Based on research, plan OAuth integration
 
-/4_implement_plan
-> thoughts/shared/plans/oauth_integration.md
+/3_implement_plan
+> thoughts/NNN_oauth_integration/plan.md
 
 /3_validate_plan
 > Verify OAuth implementation
@@ -636,8 +634,8 @@ Design tests before implementation:
 > Implement partner enrollment logic to make tests pass
 
 # Step 5: Implement the feature
-/4_implement_plan
-> thoughts/shared/plans/partner_enrollment.md
+/3_implement_plan
+> thoughts/NNN_partner_enrollment/plan.md
 
 # Step 6: Validate tests pass
 /3_validate_plan

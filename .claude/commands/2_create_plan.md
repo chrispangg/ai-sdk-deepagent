@@ -59,7 +59,9 @@ Does this phasing make sense?
 
 ### Step 4: Detailed Plan Writing
 
-Check existing plan files to determine next sequence number, then write the plan to `thoughts/shared/plans/NNN_{descriptive_name}.md` where NNN is a 3-digit sequential number (001, 002, etc.):
+Check existing topic folders to determine next sequence number, then:
+- Create folder `thoughts/NNN_{descriptive_name}/` where NNN is a 3-digit sequential number (001, 002, etc.)
+- Write the plan to `thoughts/NNN_{descriptive_name}/plan.md`
 
 ```markdown
 # [Feature/Task Name] Implementation Plan

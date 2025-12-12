@@ -79,8 +79,9 @@ Then wait for the user's research query.
    ```
 
 6. **Save and present findings:**
-   - Check existing research files to determine next sequence number
-   - Save to `thoughts/shared/research/NNN_topic.md` where NNN is a 3-digit sequential number (001, 002, etc.)
+   - Check existing topic folders to determine next sequence number
+   - Create folder `thoughts/NNN_topic/` where NNN is a 3-digit sequential number (001, 002, etc.)
+   - Save research to `thoughts/NNN_topic/research.md`
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
 

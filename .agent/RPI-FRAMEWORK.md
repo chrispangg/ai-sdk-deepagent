@@ -30,18 +30,16 @@ The RPI framework prevents "AI slop"—low-quality code that requires significan
 
 ## Folder Structure
 
-All RPI artifacts are stored in `thoughts/shared/` with sequential numbering:
+All RPI artifacts are stored in `thoughts/` with sequential numbering:
 
 ```
-thoughts/shared/
-├── research/
-│   ├── 001_feature-name.md
-│   ├── 002_another-topic.md
-│   └── ...
-├── plans/
-│   ├── 001_feature-implementation.md
-│   ├── 002_refactor-plan.md
-│   └── ...
+thoughts/
+├── 001_feature-name/
+│   ├── plan.md
+│   └── research.md
+├── 002_another-feature/
+│   ├── plan.md
+│   └── research.md
 ├── sessions/
 │   ├── 001_feature-name.md
 │   ├── 002_work-session.md
@@ -131,7 +129,7 @@ status: complete
 [Any areas that need further investigation]
 ```
 
-7. **Save research document**: `thoughts/shared/research/NNN_topic.md` (where NNN is next sequential number)
+7. **Save research document**: Create folder `thoughts/NNN_topic/` and save to `thoughts/NNN_topic/research.md` (where NNN is next sequential number)
 
 ### Research Quality Checklist
 
@@ -258,7 +256,7 @@ Use `/2_create_plan` command to create implementation plans.
 
 ```
 
-7. **Save plan document**: `thoughts/shared/plans/NNN_descriptive-name.md`
+7. **Save plan document**: Create folder `thoughts/NNN_descriptive-name/` if it doesn't exist, then save to `thoughts/NNN_descriptive-name/plan.md`
 
 8. **Review and iterate** based on user feedback until satisfied.
 
@@ -286,7 +284,7 @@ Use `/3_implement_plan` command to implement approved plans.
 
 ### Process
 
-1. **Invoke implement command**: `/3_implement_plan thoughts/shared/plans/NNN_plan-name.md`
+1. **Invoke implement command**: `/3_implement_plan thoughts/NNN_plan-name/plan.md`
 
 2. **Read plan completely**:
    - Check for any existing checkmarks (- [x])
@@ -418,7 +416,7 @@ Use `/5_save_progress` when pausing work mid-implementation:
 
 - Commits meaningful work with WIP commits
 - Updates plan document with progress checkpoint
-- Creates session summary in `thoughts/shared/sessions/NNN_feature.md`
+- Creates session summary in `thoughts/sessions/NNN_feature.md`
 - Documents current state, blockers, and next steps
 - Provides commands to resume work
 
@@ -426,7 +424,7 @@ Use `/5_save_progress` when pausing work mid-implementation:
 
 Use `/6_resume_work` when returning to saved work:
 
-- Loads session summary from `thoughts/shared/sessions/`
+- Loads session summary from `thoughts/sessions/`
 - Restores full context (plan, research, recent commits)
 - Rebuilds mental model of where work left off
 - Continues from first unchecked item in plan
@@ -452,7 +450,7 @@ Use `/7_research_cloud` for cloud deployments (READ-ONLY operations only):
 - Analyzes Azure/AWS/GCP infrastructure
 - Uses cloud CLI tools (az, aws, gcloud)
 - Generates infrastructure analysis documents
-- Saves to `thoughts/shared/cloud/NNN_platform_environment.md`
+- Saves to `thoughts/cloud/NNN_platform_environment.md`
 
 **Safety**: Only executes READ-ONLY operations (list, show, describe, get). Never creates, modifies, or deletes resources.
 
@@ -532,15 +530,15 @@ Use `/7_research_cloud` for cloud deployments (READ-ONLY operations only):
 # 2. Research phase
 /1_research_codebase
 > [Research question about the feature]
-# Output: thoughts/shared/research/NNN_topic.md
+# Output: thoughts/NNN_topic/research.md
 
 # 3. Plan phase
 /2_create_plan
 > [Task description and requirements]
-# Output: thoughts/shared/plans/NNN_feature-implementation.md
+# Output: thoughts/NNN_feature-implementation/plan.md
 
 # 4. Implement phase
-/3_implement_plan thoughts/shared/plans/NNN_feature-implementation.md
+/3_implement_plan thoughts/NNN_feature-implementation/plan.md
 # Updates plan checkboxes, implements code
 
 # 5. Validate phase
@@ -558,14 +556,14 @@ Use `/7_research_cloud` for cloud deployments (READ-ONLY operations only):
 1. **Research**: `/1_research_codebase`
    - Spawns codebase-locator, codebase-analyzer, pattern-finder in parallel
    - Examines reference implementations in `.refs/`
-   - Generates `thoughts/shared/research/001_feature-name.md`
+   - Generates `thoughts/001_feature-name/research.md`
 
 2. **Plan**: `/2_create_plan`
    - Uses research findings
    - Iterates with user on approach
-   - Generates `thoughts/shared/plans/001_feature-implementation.md`
+   - Generates `thoughts/001_feature-implementation/plan.md`
 
-3. **Implement**: `/3_implement_plan thoughts/shared/plans/001_feature-implementation.md`
+3. **Implement**: `/3_implement_plan thoughts/001_feature-implementation/plan.md`
    - Follows plan step-by-step
    - Updates checkboxes as work completes
    - Runs validation after each phase
@@ -615,15 +613,15 @@ This RPI framework integrates with the project's agent architecture described in
 ## File Organization Summary
 
 ```
-thoughts/shared/
-├── research/          # Research findings (NNN_topic.md)
-├── plans/            # Implementation plans (NNN_feature.md)
-├── sessions/         # Work session summaries (NNN_feature.md)
-├── cloud/            # Cloud infrastructure analysis
-└── costs/            # Cost analysis reports
+thoughts/
+├── 001_feature-name/  # Feature folders with plan.md and research.md
+├── 002_another-feature/
+├── sessions/          # Work session summaries (NNN_feature.md)
+├── cloud/             # Cloud infrastructure analysis
+└── costs/             # Cost analysis reports
 
 .agent/
-└── PROJECT-STATE.md  # Feature tracking (update after completion)
+└── PROJECT-STATE.md   # Feature tracking (update after completion)
 ```
 
 All artifacts use sequential numbering (001, 002, 003...) and include YAML frontmatter for metadata.

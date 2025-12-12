@@ -19,13 +19,13 @@ Invoke this when:
 
    ```
    /6_resume_work
-   > thoughts/shared/sessions/2025-01-06_user_management.md
+   > thoughts/sessions/2025-01-06_user_management.md
    ```
 
 2. **Or discover recent sessions**:
 
    ```bash
-   ls -la thoughts/shared/sessions/
+   ls -la thoughts/sessions/
    # Show user recent sessions to choose from
    ```
 
@@ -143,7 +143,7 @@ I'll continue with [specific next action]...
 
 ```markdown
 /6_resume_work
-> thoughts/shared/sessions/2025-01-03_auth_refactor.md
+> thoughts/sessions/2025-01-03_auth_refactor.md
 
 # Claude:
 1. Reads full session summary
