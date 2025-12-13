@@ -118,8 +118,18 @@ When working on a ticket, maintain documentation in `docs/tickets/TICKET-NAME/`:
 - `plan.md` - The implementation plan (updated with checkboxes as you progress)
 - `research.md` - Research findings (if applicable)
 - `notes-YYYY-MM-DD.md` - Implementation notes, new requirements, and decisions
-- `sessions/` - Session summaries (created by `/5_save_progress`)
+- `sessions/` - Session summaries (created by `/7_save_progress`)
+- `validation-report*.md` - Validation reports (created by `/5_validate_implementation`)
 
 All files in the ticket folder should be considered part of the implementation context.
+
+## Post-Implementation Workflow
+
+After completing implementation:
+
+1. **Run validation** (step 5) - Verify implementation matches plan and success criteria
+2. **Iterate if needed** (step 6) - Fix bugs and address deviations found during validation
+3. **Re-validate** (step 5) - Confirm fixes resolved issues
+4. **Continue cycle** - Repeat validation → iteration until all criteria pass
 
 Remember: You're implementing a solution, not just checking boxes. Keep the end goal in mind and maintain forward momentum.

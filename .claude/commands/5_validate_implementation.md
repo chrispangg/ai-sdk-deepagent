@@ -122,7 +122,34 @@ Create comprehensive validation summary:
 ### Recommendations:
 - [Action items before merge]
 - [Improvements to consider]
+
+### Next Steps:
+- [ ] Run step 6 (Iterate Implementation) to address identified issues
+- [ ] Re-run validation after fixes are complete
+- [ ] Continue iteration cycle until all criteria pass
 ```
+
+## Iteration Cycle
+
+This validation step is designed to work in a cycle with iteration (step 6):
+
+```
+Step 5 (Validate) → Step 6 (Iterate) → Step 5 (Validate) → Step 6 (Iterate) → ...
+```
+
+**Typical flow:**
+
+1. Run validation (step 5) → Identifies issues, bugs, deviations
+2. Run iteration (step 6) → Fixes issues found
+3. Re-run validation (step 5) → Verifies fixes, finds any remaining issues
+4. Continue cycle until all criteria pass
+
+When validation finds issues:
+
+- Document them clearly in the validation report
+- Prioritize by severity (critical bugs, deviations, code quality)
+- Provide actionable next steps
+- Recommend running step 6 (Iterate Implementation) to address issues
 
 ## Important Guidelines
 
@@ -131,6 +158,7 @@ Create comprehensive validation summary:
 3. **Document everything** - Both successes and issues
 4. **Think critically** - Question if implementation solves the problem
 5. **Consider maintenance** - Will this be maintainable?
+6. **Enable iteration** - Structure findings to enable effective iteration cycles
 
 ## Validation Checklist
 

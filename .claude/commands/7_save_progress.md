@@ -198,6 +198,7 @@ To continue this work:
 
 This command works with:
 
-- `/3_implement_plan` - Updates plan progress
-- `/6_resume_work` - Paired resume command
-- `/4_validate_plan` - Can validate partial progress
+- `/4_implement_plan` - Updates plan progress
+- `/5_validate_implementation` - Can validate partial progress
+- `/6_iterate_implementation` - Can save progress during iteration cycles
+- `/8_resume_work` - Paired resume command

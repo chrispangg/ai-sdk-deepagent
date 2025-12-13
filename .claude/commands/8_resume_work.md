@@ -177,10 +177,11 @@ I'll continue with [specific next action]...
 
 This command connects with:
 
-- `/5_save_progress` - Reads saved progress
-- `/3_implement_plan` - Continues implementation
+- `/7_save_progress` - Reads saved progress
+- `/4_implement_plan` - Continues implementation
+- `/5_validate_implementation` - Validates what's been completed
+- `/6_iterate_implementation` - Can resume iteration cycles
 - `/1_research_codebase` - Refreshes understanding if needed
-- `/4_validate_plan` - Checks what's been completed
 
 ## Advanced Features
 
