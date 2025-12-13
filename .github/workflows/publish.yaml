@@ -101,7 +101,7 @@ jobs:
         id: bump
         run: |
           # Get current version
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          CURRENT_VERSION=$(bun -e "import pkg from './package.json'; console.log(pkg.version)")
           echo "Current version: $CURRENT_VERSION"
 
           # Bump version only if BUMP_TYPE is set
@@ -112,14 +112,22 @@ jobs:
             NEW_VERSION="$CURRENT_VERSION"
           else
             npm version $BUMP_TYPE -m "chore: bump version to %s [skip ci]"
-            NEW_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION=$(bun -e "import pkg from './package.json'; console.log(pkg.version)")
             echo "New version: $NEW_VERSION"
           fi
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Publish to npm (via OIDC Trusted Publishing)
-        run: npm publish
+        if: steps.version-bump.outputs.type != ''
+        env:
+          # Bun publish respects NPM_CONFIG_TOKEN for CI/CD authentication
+          # setup-node@v4 configures this automatically via OIDC
+          NPM_CONFIG_PROVENANCE: true
+        run: |
+          # --access public: Set package access level (required for unscoped packages)
+          # --tolerate-republish: Exit with code 0 if version already exists (useful for CI/CD retries)
+          bun publish --access public --tolerate-republish
 
       - name: Push version bump
         if: steps.version-bump.outputs.type != ''  # Only push if a version bump happened
@@ -127,6 +135,7 @@ jobs:
           git push origin main --follow-tags
 
       - name: Create GitHub Release
+        if: steps.version-bump.outputs.type != ''  # Only create release if version was bumped
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
