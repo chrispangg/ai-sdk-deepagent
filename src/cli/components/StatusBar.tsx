@@ -23,6 +23,8 @@ interface StatusBarProps {
   features?: FeatureFlags;
   /** Whether auto-approve mode is enabled */
   autoApproveEnabled?: boolean;
+  /** Current session ID if checkpointing is enabled */
+  sessionId?: string;
 }
 
 export function StatusBar({
@@ -31,6 +33,7 @@ export function StatusBar({
   status = "idle",
   features,
   autoApproveEnabled = false,
+  sessionId,
 }: StatusBarProps): React.ReactElement {
   // Get short model name
   const shortModel = model.split("/").pop() || model;
@@ -71,6 +74,12 @@ export function StatusBar({
           <Text color={colors.success}>🟢 Auto-approve</Text>
         ) : (
           <Text color={colors.warning}>🔴 Safe mode</Text>
+        )}
+        {sessionId && (
+          <>
+            {" · "}
+            <Text dimColor>Session: {sessionId}</Text>
+          </>
         )}
         {" · "}? for shortcuts
       </Text>

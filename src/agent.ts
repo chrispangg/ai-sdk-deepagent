@@ -23,6 +23,7 @@ import type {
   SandboxBackendProtocol,
   InterruptOnConfig,
 } from "./types.ts";
+import type { BaseCheckpointSaver, Checkpoint, InterruptData } from "./checkpointer/types.ts";
 import { isSandboxBackend } from "./types.ts";
 import {
   BASE_PROMPT,
@@ -88,6 +89,7 @@ export class DeepAgent {
   private summarizationConfig?: SummarizationConfig;
   private hasSandboxBackend: boolean;
   private interruptOn?: InterruptOnConfig;
+  private checkpointer?: BaseCheckpointSaver;
 
   constructor(params: CreateDeepAgentParams) {
     const {
@@ -102,6 +104,7 @@ export class DeepAgent {
       enablePromptCaching = false,
       summarization,
       interruptOn,
+      checkpointer,
     } = params;
 
     this.model = model;
@@ -112,6 +115,7 @@ export class DeepAgent {
     this.enablePromptCaching = enablePromptCaching;
     this.summarizationConfig = summarization;
     this.interruptOn = interruptOn;
+    this.checkpointer = checkpointer;
 
     // Check if backend is a sandbox (supports execute)
     // For factory functions, we can't know until runtime, so we check if it's an instance
@@ -307,15 +311,61 @@ export class DeepAgent {
   async *streamWithEvents(
     options: StreamWithEventsOptions
   ): AsyncGenerator<DeepAgentEvent, void, unknown> {
-    // Create or use provided state
-    const state: DeepAgentState = options.state || {
-      todos: [],
-      files: {},
-    };
+    const { threadId, resume } = options;
+    
+    // Load checkpoint if threadId is provided and checkpointer exists
+    let state: DeepAgentState = options.state || { todos: [], files: {} };
+    let patchedHistory: ModelMessage[] = [];
+    let currentStep = 0;
+    let pendingInterrupt: InterruptData | undefined;
+    
+    if (threadId && this.checkpointer) {
+      const checkpoint = await this.checkpointer.load(threadId);
+      if (checkpoint) {
+        // Restore from checkpoint
+        state = checkpoint.state;
+        patchedHistory = checkpoint.messages;
+        currentStep = checkpoint.step;
+        pendingInterrupt = checkpoint.interrupt;
+        
+        yield {
+          type: "checkpoint-loaded",
+          threadId,
+          step: checkpoint.step,
+          messagesCount: checkpoint.messages.length,
+        };
+      }
+    }
+    
+    // Handle resume from interrupt
+    if (resume && pendingInterrupt) {
+      // Process the resume decision (approve/deny the pending tool call)
+      const decision = resume.decisions[0];
+      if (decision?.type === 'approve') {
+        // Clear the interrupt and continue
+        pendingInterrupt = undefined;
+      } else {
+        // Deny - the tool was rejected, clear interrupt
+        pendingInterrupt = undefined;
+        // Could add a denied message to history here if needed
+      }
+    }
+    
+    // Require prompt unless resuming
+    if (!options.prompt && !resume) {
+      yield {
+        type: "error",
+        error: new Error("Either 'prompt' or 'resume' is required"),
+      };
+      return;
+    }
+    
+    // If no prompt but resuming, use an empty prompt (the checkpoint has context)
+    const prompt = options.prompt || "";
 
     // Build messages array: previous history + new user message
     // Patch any dangling tool calls in the history first
-    let patchedHistory = patchToolCalls(options.messages || []);
+    patchedHistory = patchToolCalls(patchedHistory);
 
     // Apply summarization if enabled and needed
     if (this.summarizationConfig?.enabled && patchedHistory.length > 0) {
@@ -329,12 +379,13 @@ export class DeepAgent {
 
     const inputMessages: ModelMessage[] = [
       ...patchedHistory,
-      { role: "user", content: options.prompt } as ModelMessage,
+      ...(prompt ? [{ role: "user", content: prompt } as ModelMessage] : []),
     ];
 
     // Event queue for collecting events from tool executions
     const eventQueue: DeepAgentEvent[] = [];
-    let stepNumber = 0;
+    let stepNumber = 0; // Relative to current execution
+    const baseStep = currentStep; // Cumulative step from checkpoint
 
     // Event callback that tools will use to emit events
     const onEvent: EventCallback = (event) => {
@@ -361,10 +412,11 @@ export class DeepAgent {
         tools,
         stopWhen: stepCountIs(options.maxSteps ?? this.maxSteps),
         abortSignal: options.abortSignal,
-        onStepFinish: ({ toolCalls, toolResults }) => {
+        onStepFinish: async ({ toolCalls, toolResults }) => {
           stepNumber++;
+          const cumulativeStep = baseStep + stepNumber;
 
-          // Emit step finish event
+          // Emit step finish event (relative step number)
           const stepEvent: DeepAgentEvent = {
             type: "step-finish",
             stepNumber,
@@ -375,6 +427,28 @@ export class DeepAgent {
             })),
           };
           eventQueue.push(stepEvent);
+          
+          // Save checkpoint if configured
+          if (threadId && this.checkpointer) {
+            // Get current messages state - we need to track messages as they're built
+            // For now, we'll save with the input messages (will be updated after assistant response)
+            const checkpoint: Checkpoint = {
+              threadId,
+              step: cumulativeStep, // Cumulative step number
+              messages: inputMessages, // Current messages before assistant response
+              state: { ...state },
+              interrupt: pendingInterrupt,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await this.checkpointer.save(checkpoint);
+            
+            eventQueue.push({
+              type: "checkpoint-saved",
+              threadId,
+              step: cumulativeStep,
+            });
+          }
         },
       };
 
@@ -442,6 +516,19 @@ export class DeepAgent {
         text: finalText,
         messages: updatedMessages,
       };
+      
+      // Save final checkpoint after done event
+      if (threadId && this.checkpointer) {
+        const finalCheckpoint: Checkpoint = {
+          threadId,
+          step: baseStep + stepNumber, // Cumulative step number
+          messages: updatedMessages,
+          state,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await this.checkpointer.save(finalCheckpoint);
+      }
     } catch (error) {
       // Yield error event
       yield {

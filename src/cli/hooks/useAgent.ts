@@ -10,10 +10,12 @@ import type {
   SummarizationConfig,
   InterruptOnConfig,
 } from "../../types.js";
+import type { BaseCheckpointSaver } from "../../checkpointer/types.js";
 import { createDeepAgent } from "../../agent.js";
 import { parseModelString } from "../../utils/model-parser.js";
 import type { FilesystemBackend } from "../../backends/filesystem.js";
 import type { ToolCallData } from "../components/Message.js";
+import { useEffect } from "react";
 
 export type AgentStatus =
   | "idle"
@@ -47,6 +49,10 @@ export interface UseAgentOptions {
    * Default: { execute: true, write_file: true, edit_file: true }
    */
   interruptOn?: InterruptOnConfig;
+  /** Session ID for checkpoint persistence */
+  sessionId?: string;
+  /** Checkpoint saver for session persistence */
+  checkpointer?: BaseCheckpointSaver;
 }
 
 export interface UseAgentReturn {
@@ -133,6 +139,30 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
   const [error, setError] = useState<Error | null>(null);
   const [currentModel, setCurrentModel] = useState(options.model);
   
+  // Load session on mount if sessionId and checkpointer are provided
+  useEffect(() => {
+    const loadSession = async () => {
+      if (!options.sessionId || !options.checkpointer) return;
+      
+      const checkpoint = await options.checkpointer.load(options.sessionId);
+      if (checkpoint) {
+        setState(checkpoint.state);
+        setMessages(checkpoint.messages);
+        messagesRef.current = checkpoint.messages;
+        // Show restore message via addEvent
+        addEvent({
+          type: "checkpoint-loaded",
+          threadId: options.sessionId,
+          step: checkpoint.step,
+          messagesCount: checkpoint.messages.length,
+        });
+      }
+    };
+    
+    loadSession().catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.sessionId]);
+  
   // Feature flag states (can be toggled at runtime)
   const [promptCachingEnabled, setPromptCachingEnabled] = useState(options.enablePromptCaching ?? false);
   const [evictionLimit, setEvictionLimit] = useState(options.toolResultEvictionLimit ?? 0);
@@ -179,6 +209,7 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
       toolResultEvictionLimit: evictionLimit,
       summarization: summarizationConfig,
       interruptOn: autoApproveEnabled ? undefined : (options.interruptOn ?? DEFAULT_CLI_INTERRUPT_ON),
+      checkpointer: options.checkpointer,
     })
   );
 
@@ -233,6 +264,7 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
           prompt,
           state,
           messages: messagesRef.current,
+          threadId: options.sessionId,
           abortSignal: abortControllerRef.current.signal,
           // Approval callback - auto-approve or prompt user
           onApprovalRequest: async (request) => {

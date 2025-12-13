@@ -50,6 +50,8 @@ export type {
   SubagentFinishEvent,
   ApprovalRequestedEvent,
   ApprovalResponseEvent,
+  CheckpointSavedEvent,
+  CheckpointLoadedEvent,
   DoneEvent,
   ErrorEvent,
   // Approval configuration types
@@ -118,3 +120,6 @@ export {
   type SummarizationOptions,
   type SummarizationResult,
 } from "./utils/index.ts";
+
+// Checkpointer
+export * from "./checkpointer/index.ts";

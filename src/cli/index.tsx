@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { render, useApp, useInput, Box, Text, Static } from "ink";
 import { FilesystemBackend } from "../backends/filesystem.js";
+import { FileSaver } from "../checkpointer/file-saver.js";
 import { useAgent, type AgentEventLog } from "./hooks/useAgent.js";
 import {
   Welcome,
@@ -56,6 +57,7 @@ interface CLIOptions {
   maxSteps?: number;
   systemPrompt?: string;
   workDir?: string;
+  session?: string;
   // New feature flags
   enablePromptCaching?: boolean;
   toolResultEvictionLimit?: number;
@@ -119,6 +121,12 @@ function parseArgs(): CLIOptions {
         options.summarizationKeepMessages = parseInt(val, 10);
         options.enableSummarization = true;
       }
+    } else if (arg === "--session") {
+      const val = args[++i];
+      if (val) options.session = val;
+    } else if (arg && arg.startsWith("--session=")) {
+      const sessionVal = arg.split("=")[1];
+      if (sessionVal) options.session = sessionVal;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -204,6 +212,11 @@ function App({ options, backend }: AppProps): React.ReactElement {
       }
     : undefined;
 
+  // Create checkpointer if session is provided
+  const checkpointer = options.session
+    ? new FileSaver({ dir: "./.checkpoints" })
+    : undefined;
+
   // Agent hook with new feature options
   const agent = useAgent({
     model: options.model || "anthropic/claude-haiku-4-5-20251001",
@@ -213,6 +226,8 @@ function App({ options, backend }: AppProps): React.ReactElement {
     enablePromptCaching: options.enablePromptCaching,
     toolResultEvictionLimit: options.toolResultEvictionLimit,
     summarization: summarizationConfig,
+    sessionId: options.session,
+    checkpointer,
     // Default interruptOn config for CLI - safe defaults
     interruptOn: {
       execute: true,
@@ -334,6 +349,77 @@ function App({ options, backend }: AppProps): React.ReactElement {
       case "tok":
         const tokenCount = estimateMessagesTokens(agent.messages);
         setPanel({ view: "tokens", tokenCount });
+        break;
+
+      case "sessions":
+      case "session-list":
+        if (checkpointer) {
+          const sessions = await checkpointer.list();
+          if (sessions.length > 0) {
+            // Show sessions list
+            const sessionList = sessions.map(s => `  - ${s}`).join('\n');
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `session-list-${Date.now()}`,
+                role: "assistant",
+                content: `Saved sessions:\n${sessionList}`,
+                timestamp: new Date(),
+              },
+            ]);
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `session-list-empty-${Date.now()}`,
+                role: "assistant",
+                content: "No saved sessions",
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `session-error-${Date.now()}`,
+              role: "assistant",
+              content: "Checkpointing not enabled. Use --session to enable.",
+              timestamp: new Date(),
+            },
+          ]);
+        }
+        break;
+
+      case "session":
+        if (!args) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `session-usage-${Date.now()}`,
+              role: "assistant",
+              content: "Usage: /session clear",
+              timestamp: new Date(),
+            },
+          ]);
+          return;
+        }
+        if (args.trim() === "clear" && options.session && checkpointer) {
+          await checkpointer.delete(options.session);
+          setMessages([]);
+          agent.clear();
+          setShowWelcome(true);
+          setPanel({ view: "none" });
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `session-cleared-${Date.now()}`,
+              role: "assistant",
+              content: "Session cleared.",
+              timestamp: new Date(),
+            },
+          ]);
+        }
         break;
 
       case "clear":
@@ -516,6 +602,7 @@ function App({ options, backend }: AppProps): React.ReactElement {
         status={agent.status}
         features={agent.features}
         autoApproveEnabled={agent.autoApproveEnabled}
+        sessionId={options.session}
       />
     </Box>
   );

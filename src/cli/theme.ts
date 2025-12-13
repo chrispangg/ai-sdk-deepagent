@@ -137,6 +137,16 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     description: "Clear chat history",
   },
   {
+    command: "/sessions",
+    aliases: ["/session-list"],
+    description: "List saved sessions",
+  },
+  {
+    command: "/session",
+    aliases: [],
+    description: "Session management (usage: /session clear)",
+  },
+  {
     command: "/help",
     aliases: ["/h", "/?"],
     description: "Show help",

@@ -22,6 +22,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [x] **SandboxBackendProtocol** - Execute shell commands in isolated environments (`BaseSandbox`, `LocalSandbox`)
 - [x] **Execute Tool** - Run commands via sandbox backend (auto-added for sandbox backends)
 - [x] **Human-in-the-Loop (HITL)** - Interrupt agent for tool approval/rejection via `interruptOn` config; CLI supports Safe/Auto-approve modes
+- [x] **Checkpointer Support** - Persist agent state between invocations (pause/resume); includes `MemorySaver`, `FileSaver`, `KeyValueStoreSaver`; CLI session management via `--session` flag
 
 ---
 
@@ -29,7 +30,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 
 ### Critical
 
-- [ ] **Checkpointer Support** - Persist agent state between invocations (pause/resume)
+_No critical features pending_
 
 ### High Priority
 

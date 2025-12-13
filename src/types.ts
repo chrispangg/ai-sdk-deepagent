@@ -3,6 +3,7 @@
  */
 
 import type { ToolSet, ModelMessage, LanguageModel } from "ai";
+import type { BaseCheckpointSaver, ResumeOptions } from "./checkpointer/types.ts";
 
 // Re-export for convenience
 export type { ModelMessage, LanguageModel };
@@ -383,6 +384,24 @@ export interface CreateDeepAgentParams {
    * ```
    */
   interruptOn?: InterruptOnConfig;
+  
+  /**
+   * Optional checkpointer for persisting agent state between invocations.
+   * 
+   * When provided, the agent automatically saves checkpoints after each step.
+   * Use with `threadId` in streamWithEvents to enable conversation persistence.
+   * 
+   * @example
+   * ```typescript
+   * import { MemorySaver } from 'ai-sdk-deep-agent';
+   * 
+   * const agent = createDeepAgent({
+   *   model: anthropic('claude-sonnet-4-20250514'),
+   *   checkpointer: new MemorySaver(),
+   * });
+   * ```
+   */
+  checkpointer?: BaseCheckpointSaver;
 }
 
 /**
@@ -969,6 +988,30 @@ export interface ApprovalResponseEvent {
 }
 
 /**
+ * Event emitted when a checkpoint is saved.
+ */
+export interface CheckpointSavedEvent {
+  type: "checkpoint-saved";
+  /** Thread ID */
+  threadId: string;
+  /** Step number */
+  step: number;
+}
+
+/**
+ * Event emitted when a checkpoint is loaded.
+ */
+export interface CheckpointLoadedEvent {
+  type: "checkpoint-loaded";
+  /** Thread ID */
+  threadId: string;
+  /** Step number from loaded checkpoint */
+  step: number;
+  /** Number of messages restored */
+  messagesCount: number;
+}
+
+/**
  * Union type of all possible Deep Agent events.
  */
 export type DeepAgentEvent =
@@ -993,6 +1036,8 @@ export type DeepAgentEvent =
   | UserMessageEvent
   | ApprovalRequestedEvent
   | ApprovalResponseEvent
+  | CheckpointSavedEvent
+  | CheckpointLoadedEvent
   | DoneEvent
   | ErrorEvent;
 
@@ -1013,7 +1058,7 @@ export interface ToolEventContext {
  */
 export interface StreamWithEventsOptions {
   /** The user's prompt/message */
-  prompt: string;
+  prompt?: string;  // Make optional for resume-only calls
   /** Maximum number of steps for the agent loop */
   maxSteps?: number;
   /** Shared state for todos and files */
@@ -1022,6 +1067,19 @@ export interface StreamWithEventsOptions {
   messages?: ModelMessage[];
   /** Signal to abort the generation */
   abortSignal?: AbortSignal;
+  /**
+   * Thread ID for checkpoint persistence.
+   * When provided with a checkpointer, enables:
+   * - Auto-saving checkpoints after each step
+   * - Loading previous conversation state on start
+   * - Resume from interrupts
+   */
+  threadId?: string;
+  /**
+   * Resume options for continuing from an interrupt.
+   * Use when resuming from a tool approval request.
+   */
+  resume?: ResumeOptions;
   /**
    * Callback to handle tool approval requests.
    * Return true to approve, false to deny.

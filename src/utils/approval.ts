@@ -102,13 +102,15 @@ export function applyInterruptConfig(
 
 /**
  * Wrap tools with approval checking that intercepts execution.
- * 
+ *
  * Unlike applyInterruptConfig which just sets needsApproval metadata,
  * this actually wraps the execute function to request approval before running.
- * 
+ *
+ * If no approval callback is provided, tools requiring approval will be auto-denied.
+ *
  * @param tools - The original toolset
  * @param interruptOn - Configuration mapping tool names to approval settings
- * @param onApprovalRequest - Callback to request approval from user
+ * @param onApprovalRequest - Callback to request approval from user (optional)
  * @returns New toolset with wrapped execute functions
  */
 export function wrapToolsWithApproval(
@@ -116,7 +118,7 @@ export function wrapToolsWithApproval(
   interruptOn: InterruptOnConfig | undefined,
   onApprovalRequest: ApprovalCallback | undefined
 ): ToolSet {
-  if (!interruptOn || !onApprovalRequest) {
+  if (!interruptOn) {
     return tools;
   }
 
@@ -124,9 +126,7 @@ export function wrapToolsWithApproval(
 
   for (const [name, existingTool] of Object.entries(tools)) {
     const config = interruptOn[name];
-    
-    console.error(`[DEBUG] wrapToolsWithApproval processing tool: ${name}, config: ${JSON.stringify(config)}`);
-    
+
     if (config === undefined || config === false) {
       // No approval needed - use tool as-is
       result[name] = existingTool;
@@ -135,31 +135,29 @@ export function wrapToolsWithApproval(
       const originalExecute = existingTool.execute;
       if (!originalExecute) {
         // Tool has no execute function - skip wrapping
-        console.error(`[DEBUG] Tool ${name} has no execute function, skipping`);
         result[name] = existingTool;
         continue;
       }
-      
-      console.error(`[DEBUG] Wrapping tool ${name} with approval check`);
-      
+
       // Create a completely new tool using the AI SDK tool() function
       // This ensures proper integration with AI SDK's execution mechanism
       result[name] = tool({
         description: existingTool.description,
         inputSchema: existingTool.inputSchema,
         execute: async (args, options) => {
-          console.error(`[DEBUG] Tool ${name} execute called, checking approval...`);
-          
           // Check if this specific call needs approval
           const needsApproval = await checkNeedsApproval(config, args);
-          console.error(`[DEBUG] Tool ${name} needsApproval: ${needsApproval}`);
-          
+
           if (needsApproval) {
+            // If no callback provided, auto-deny
+            if (!onApprovalRequest) {
+              return `Tool execution denied. No approval callback provided. The ${name} tool was not executed.`;
+            }
+
             // Generate unique IDs for this approval request
             const approvalId = generateApprovalId();
             const toolCallId = options?.toolCallId || approvalId;
-            
-            console.error(`[DEBUG] Requesting approval for ${name}...`);
+
             // Request approval from user
             const approved = await onApprovalRequest({
               approvalId,
@@ -167,14 +165,13 @@ export function wrapToolsWithApproval(
               toolName: name,
               args,
             });
-            console.error(`[DEBUG] Approval result for ${name}: ${approved}`);
-            
+
             if (!approved) {
               // User denied - return an error message instead of executing
               return `Tool execution denied by user. The ${name} tool was not executed.`;
             }
           }
-          
+
           // Approved or no approval needed - execute the tool
           return originalExecute(args, options);
         },
@@ -191,4 +188,26 @@ export function wrapToolsWithApproval(
 export function hasApprovalTools(interruptOn?: InterruptOnConfig): boolean {
   if (!interruptOn) return false;
   return Object.values(interruptOn).some((v) => v !== false);
+}
+
+/**
+ * Create interrupt data for checkpoint when approval is requested.
+ * 
+ * This is used to save checkpoint state when a tool requires approval,
+ * allowing the agent to resume from the interrupt point later.
+ */
+export function createInterruptData(
+  toolCallId: string,
+  toolName: string,
+  args: unknown,
+  step: number
+): import("../checkpointer/types.ts").InterruptData {
+  return {
+    toolCall: {
+      toolCallId,
+      toolName,
+      args,
+    },
+    step,
+  };
 }
