@@ -38,11 +38,11 @@
     "url": "https://github.com/chrispangg/ai-sdk-deepagent/issues"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^2.0.0",
-    "@ai-sdk/openai": "^3.0.0-beta.70",
-    "@ai-sdk/react": "^3.0.0-beta.120",
+    "@ai-sdk/anthropic": "^3.0.0-beta.83",
+    "@ai-sdk/openai": "^3.0.0-beta.96",
+    "@ai-sdk/react": "^3.0.0-beta.153",
     "@inkjs/ui": "^1.0.0",
-    "ai": "^6.0.0-beta.120",
+    "ai": "^6.0.0-beta.150",
     "fast-glob": "^3.3.3",
     "ink": "^5.1.0",
     "micromatch": "^4.0.8",
