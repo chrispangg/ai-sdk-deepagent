@@ -37,18 +37,13 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Run type checking
         run: bun run typecheck
 
       - name: Run tests
         run: bun test
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Configure Git
         run: |
@@ -60,6 +55,11 @@ jobs:
         run: |
           # Get the latest version tag
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          # Store the previous tag for later use in changelog
+          if [ -n "$LATEST_TAG" ]; then
+            echo "previous_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          fi
 
           if [ -z "$LATEST_TAG" ]; then
             echo "No previous tags found, getting all commit messages"
@@ -118,16 +118,48 @@ jobs:
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Publish to npm (via OIDC Trusted Publishing)
-        if: steps.version-bump.outputs.type != ''
-        env:
-          # Bun publish respects NPM_CONFIG_TOKEN for CI/CD authentication
-          # setup-node@v4 configures this automatically via OIDC
-          NPM_CONFIG_PROVENANCE: true
+      - name: Generate changelog from commits
+        if: steps.version-bump.outputs.type != ''  # Only generate if version was bumped
+        id: changelog
         run: |
-          # --access public: Set package access level (required for unscoped packages)
-          # --tolerate-republish: Exit with code 0 if version already exists (useful for CI/CD retries)
-          bun publish --access public --tolerate-republish
+          # Use the previous tag we captured before version bump
+          PREVIOUS_TAG="${{ steps.version-bump.outputs.previous_tag }}"
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tags found, getting all commits"
+            # Exclude version bump commits with [skip ci]
+            # Use HEAD^ to exclude the most recent commit (version bump)
+            COMMITS=$(git log HEAD^ --pretty=format:"- %s (%h)" --reverse | grep -v "\[skip ci\]")
+          else
+            echo "Getting commits since $PREVIOUS_TAG (excluding version bump commit)"
+            # Get commits since previous tag, excluding the version bump commit
+            # Use HEAD^ to exclude the most recent commit (version bump)
+            COMMITS=$(git log $PREVIOUS_TAG..HEAD^ --pretty=format:"- %s (%h)" --reverse | grep -v "\[skip ci\]")
+          fi
+          
+          # Create changelog body
+          CHANGELOG="## Changes in v${{ steps.bump.outputs.version }}
+          
+          $COMMITS"
+          
+          # Escape newlines and set as output
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - uses: actions/setup-node@v4
+        if: steps.version-bump.outputs.type != ''  # Only setup if version was bumped
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Publish to npm
+        if: steps.version-bump.outputs.type != ''  # Only publish if version was bumped
+        run: npm publish
 
       - name: Push version bump
         if: steps.version-bump.outputs.type != ''  # Only push if a version bump happened
@@ -136,15 +168,10 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.version-bump.outputs.type != ''  # Only create release if version was bumped
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.bump.outputs.version }}
-          release_name: v${{ steps.bump.outputs.version }}
-          body: |
-            Release ${{ steps.bump.outputs.version }}
-
-            See [CHANGELOG](https://github.com/chrispangg/ai-sdk-deepagent/blob/main/CHANGELOG.md) for details.
+          name: v${{ steps.bump.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
           draft: false
           prerelease: false

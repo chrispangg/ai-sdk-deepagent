@@ -271,10 +271,14 @@ export class DeepAgent {
     const result = await agent.generate({ prompt: options.prompt });
 
     // Return result with state attached
-    return {
-      ...result,
-      state,
-    };
+    // Note: We attach state as a property to preserve getters on result
+    Object.defineProperty(result, 'state', {
+      value: state,
+      enumerable: true,
+      writable: false,
+    });
+
+    return result as typeof result & { state: DeepAgentState };
   }
 
   /**
@@ -291,10 +295,14 @@ export class DeepAgent {
     const result = await agent.stream({ prompt: options.prompt });
 
     // Return result with state attached
-    return {
-      ...result,
-      state,
-    };
+    // Note: We attach state as a property to preserve getters on result
+    Object.defineProperty(result, 'state', {
+      value: state,
+      enumerable: true,
+      writable: false,
+    });
+
+    return result as typeof result & { state: DeepAgentState };
   }
 
   /**
@@ -308,10 +316,15 @@ export class DeepAgent {
     const agent = this.createAgent(options.state, options.maxSteps);
     const result = await agent.generate({ prompt: options.prompt });
 
-    return {
-      ...result,
-      state: options.state,
-    };
+    // Return result with state attached
+    // Note: We attach state as a property to preserve getters on result
+    Object.defineProperty(result, 'state', {
+      value: options.state,
+      enumerable: true,
+      writable: false,
+    });
+
+    return result as typeof result & { state: DeepAgentState };
   }
 
   /**
