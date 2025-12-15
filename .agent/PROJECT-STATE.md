@@ -23,6 +23,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [x] **Execute Tool** - Run commands via sandbox backend (auto-added for sandbox backends)
 - [x] **Human-in-the-Loop (HITL)** - Interrupt agent for tool approval/rejection via `interruptOn` config; CLI supports Safe/Auto-approve modes
 - [x] **Checkpointer Support** - Persist agent state between invocations (pause/resume); includes `MemorySaver`, `FileSaver`, `KeyValueStoreSaver`; CLI session management via `--session` flag
+- [x] **Web Tools** - `web_search` (Tavily API), `http_request`, `fetch_url` with HTML → Markdown conversion; follows LangChain approval pattern (approval required for `web_search` and `fetch_url` only)
 
 ---
 
@@ -39,11 +40,6 @@ _No critical features pending_
   - **Impact**: Unlocks Agent Memory, Skills System, and custom tool behaviors
   - **Effort**: 2-3 days (non-breaking, add `middleware: AgentMiddleware[]` param)
   - **Reference**: See `.refs/deepagentsjs/src/middleware/` for LangChain's pattern
-
-- [ ] **Web Tools** - `web_search` (Tavily), `http_request`, `fetch_url`
-  - **Why**: High user value, enables research agents and web integrations
-  - **Impact**: Immediately expands agent capabilities
-  - **Effort**: 1-2 days (straightforward tool implementations)
 
 - [ ] **Async Backend Methods** ⚠️ **[BREAKING]** - Full async variants of all backend operations
   - **Why**: Current sync methods block event loop, limits scalability

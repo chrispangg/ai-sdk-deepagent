@@ -940,6 +940,68 @@ export interface ExecuteFinishEvent {
 }
 
 /**
+ * Event emitted when a web search starts.
+ */
+export interface WebSearchStartEvent {
+  type: "web-search-start";
+  /** The search query */
+  query: string;
+}
+
+/**
+ * Event emitted when a web search finishes.
+ */
+export interface WebSearchFinishEvent {
+  type: "web-search-finish";
+  /** The search query */
+  query: string;
+  /** Number of results returned */
+  resultCount: number;
+}
+
+/**
+ * Event emitted when an HTTP request starts.
+ */
+export interface HttpRequestStartEvent {
+  type: "http-request-start";
+  /** The request URL */
+  url: string;
+  /** HTTP method (GET, POST, etc.) */
+  method: string;
+}
+
+/**
+ * Event emitted when an HTTP request finishes.
+ */
+export interface HttpRequestFinishEvent {
+  type: "http-request-finish";
+  /** The request URL */
+  url: string;
+  /** HTTP status code */
+  statusCode: number;
+}
+
+/**
+ * Event emitted when a URL fetch starts.
+ */
+export interface FetchUrlStartEvent {
+  type: "fetch-url-start";
+  /** The URL being fetched */
+  url: string;
+}
+
+/**
+ * Event emitted when a URL fetch finishes.
+ */
+export interface FetchUrlFinishEvent {
+  type: "fetch-url-finish";
+  /** The URL that was fetched */
+  url: string;
+  /** Whether extraction was successful */
+  success: boolean;
+}
+
+/**
  * Event emitted when a subagent starts.
  */
 export interface SubagentStartEvent {
@@ -1062,6 +1124,12 @@ export type DeepAgentEvent =
   | GrepEvent
   | ExecuteStartEvent
   | ExecuteFinishEvent
+  | WebSearchStartEvent
+  | WebSearchFinishEvent
+  | HttpRequestStartEvent
+  | HttpRequestFinishEvent
+  | FetchUrlStartEvent
+  | FetchUrlFinishEvent
   | SubagentStartEvent
   | SubagentFinishEvent
   | TextSegmentEvent

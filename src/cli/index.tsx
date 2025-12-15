@@ -619,12 +619,15 @@ interface EventRendererProps {
 // Tools that have their own specific events - don't show generic tool-call for these
 const TOOLS_WITH_SPECIFIC_EVENTS = new Set([
   "read_file",
-  "ls", 
+  "ls",
   "glob",
   "grep",
   "write_file",
   "edit_file",
   "write_todos",
+  "web_search",
+  "http_request",
+  "fetch_url",
 ]);
 
 function EventRenderer({ event }: EventRendererProps): React.ReactElement | null {
@@ -696,6 +699,66 @@ function EventRenderer({ event }: EventRendererProps): React.ReactElement | null
 
     case "grep":
       return <GrepResult pattern={e.pattern} count={e.count} />;
+
+    case "web-search-start":
+      return (
+        <Box>
+          <Text color={colors.info}>🔍 </Text>
+          <Text>Searching web: </Text>
+          <Text color={colors.muted}>{e.query}</Text>
+        </Box>
+      );
+
+    case "web-search-finish":
+      return (
+        <Box>
+          <Text color={colors.success}>✓ </Text>
+          <Text>Found </Text>
+          <Text color={colors.info}>{e.resultCount}</Text>
+          <Text> results</Text>
+        </Box>
+      );
+
+    case "http-request-start":
+      return (
+        <Box>
+          <Text color={colors.info}>🌐 </Text>
+          <Text>{e.method} </Text>
+          <Text color={colors.muted}>{e.url}</Text>
+        </Box>
+      );
+
+    case "http-request-finish":
+      return (
+        <Box>
+          <Text color={e.statusCode >= 200 && e.statusCode < 300 ? colors.success : colors.error}>
+            {e.statusCode >= 200 && e.statusCode < 300 ? "✓" : "✗"}{" "}
+          </Text>
+          <Text>Status: </Text>
+          <Text color={e.statusCode >= 200 && e.statusCode < 300 ? colors.success : colors.error}>
+            {e.statusCode}
+          </Text>
+        </Box>
+      );
+
+    case "fetch-url-start":
+      return (
+        <Box>
+          <Text color={colors.info}>📄 </Text>
+          <Text>Fetching: </Text>
+          <Text color={colors.muted}>{e.url}</Text>
+        </Box>
+      );
+
+    case "fetch-url-finish":
+      return (
+        <Box>
+          <Text color={e.success ? colors.success : colors.error}>
+            {e.success ? "✓" : "✗"}{" "}
+          </Text>
+          <Text>{e.success ? "Content fetched" : "Failed to fetch"}</Text>
+        </Box>
+      );
 
     case "subagent-start":
       return <SubagentStart name={e.name} task={e.task} />;

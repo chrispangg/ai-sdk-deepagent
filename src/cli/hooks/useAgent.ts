@@ -119,10 +119,14 @@ function createEventId(): string {
 }
 
 // Default interruptOn config for CLI - safe defaults
+// Based on LangChain DeepAgents approval pattern
 const DEFAULT_CLI_INTERRUPT_ON: InterruptOnConfig = {
   execute: true,
   write_file: true,
   edit_file: true,
+  web_search: true,
+  fetch_url: true,
+  // Note: http_request does NOT require approval per LangChain pattern
 };
 
 export function useAgent(options: UseAgentOptions): UseAgentReturn {
@@ -388,6 +392,42 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
             case "grep":
               // Flush text before tool-related events
               flushTextSegment();
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "web-search-start":
+              // Flush text before web search event
+              flushTextSegment();
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "web-search-finish":
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "http-request-start":
+              // Flush text before HTTP request event
+              flushTextSegment();
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "http-request-finish":
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "fetch-url-start":
+              // Flush text before URL fetch event
+              flushTextSegment();
+              setStatus("tool-call");
+              addEvent(event);
+              break;
+
+            case "fetch-url-finish":
               setStatus("tool-call");
               addEvent(event);
               break;

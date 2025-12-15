@@ -46,6 +46,12 @@ export type {
   FileEditedEvent,
   ExecuteStartEvent,
   ExecuteFinishEvent,
+  WebSearchStartEvent,
+  WebSearchFinishEvent,
+  HttpRequestStartEvent,
+  HttpRequestFinishEvent,
+  FetchUrlStartEvent,
+  FetchUrlFinishEvent,
   SubagentStartEvent,
   SubagentFinishEvent,
   ApprovalRequestedEvent,
@@ -87,6 +93,10 @@ export {
   createExecuteTool,
   createExecuteToolFromBackend,
   type CreateExecuteToolOptions,
+  // Web tools
+  createWebTools,
+  htmlToMarkdown,
+  type CreateWebToolsOptions,
 } from "./tools/index.ts";
 
 // Prompts (for customization)

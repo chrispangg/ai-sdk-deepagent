@@ -39,6 +39,7 @@ import { createTodosTool } from "./tools/todos.ts";
 import { createFilesystemTools } from "./tools/filesystem.ts";
 import { createSubagentTool } from "./tools/subagent.ts";
 import { createExecuteTool } from "./tools/execute.ts";
+import { createWebTools } from "./tools/web.ts";
 import { StateBackend } from "./backends/state.ts";
 import { patchToolCalls } from "./utils/patch-tool-calls.ts";
 import { summarizeIfNeeded } from "./utils/summarization.ts";
@@ -188,6 +189,17 @@ export class DeepAgent {
       ...filesystemTools,
       ...this.userTools,
     };
+
+    // Add web tools if TAVILY_API_KEY is available
+    const webTools = createWebTools(state, {
+      backend: this.backend,
+      onEvent,
+      toolResultEvictionLimit: this.toolResultEvictionLimit,
+    });
+    // Only spread if webTools has actual tools (not empty object)
+    if (Object.keys(webTools).length > 0) {
+      allTools = { ...allTools, ...webTools };
+    }
 
     // Add execute tool if backend is a sandbox
     if (this.hasSandboxBackend) {

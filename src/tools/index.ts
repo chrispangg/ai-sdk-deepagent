@@ -10,4 +10,5 @@ export {
   createExecuteToolFromBackend,
   type CreateExecuteToolOptions,
 } from "./execute.ts";
+export { createWebTools, htmlToMarkdown, type CreateWebToolsOptions } from "./web.ts";
 
