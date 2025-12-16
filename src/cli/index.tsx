@@ -166,12 +166,13 @@ Runtime Commands:
 
 API Keys:
   The CLI automatically loads API keys from:
-  1. Environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY)
+  1. Environment variables (ANTHROPIC_API_KEY, OPENAI_API_KEY, TAVILY_API_KEY)
   2. .env or .env.local file in the working directory
 
   Example .env file:
     ANTHROPIC_API_KEY=sk-ant-...
     OPENAI_API_KEY=sk-...
+    TAVILY_API_KEY=tvly-...  # For web_search tool
 
 Examples:
   bun src/cli-ink/index.tsx                                    # uses .env file

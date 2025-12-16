@@ -289,6 +289,73 @@ Manages a task list for complex multi-step operations:
 | `glob` | Find files matching a pattern |
 | `grep` | Search for text within files |
 
+### Web Tools
+
+Enable web interaction capabilities for research, API calls, and content fetching:
+
+| Tool | Description |
+|------|-------------|
+| `web_search` | Search the web using Tavily API (requires `TAVILY_API_KEY`) |
+| `http_request` | Make HTTP requests (GET, POST, PUT, DELETE, PATCH) to APIs |
+| `fetch_url` | Fetch web page content and convert HTML to clean Markdown |
+
+**Requirements:**
+
+- Set `TAVILY_API_KEY` environment variable for `web_search` tool
+- Without API key, web tools are gracefully disabled
+
+**Example:**
+
+```typescript
+import { createDeepAgent } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+
+// Set API key (or use .env file)
+process.env.TAVILY_API_KEY = 'tvly-your-key';
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+});
+
+// Agent can now use web tools
+for await (const event of agent.streamWithEvents({
+  prompt: 'Research the latest React 19 features and summarize them',
+})) {
+  switch (event.type) {
+    case 'web-search-start':
+      console.log(`🔍 Searching: ${event.query}`);
+      break;
+    case 'web-search-finish':
+      console.log(`✓ Found ${event.resultCount} results`);
+      break;
+    case 'fetch-url-start':
+      console.log(`📄 Fetching: ${event.url}`);
+      break;
+    case 'fetch-url-finish':
+      console.log(event.success ? '✓ Content fetched' : '✗ Failed');
+      break;
+    case 'http-request-start':
+      console.log(`🌐 ${event.method} ${event.url}`);
+      break;
+    case 'http-request-finish':
+      console.log(`✓ Status: ${event.statusCode}`);
+      break;
+    case 'text':
+      process.stdout.write(event.text);
+      break;
+  }
+}
+```
+
+**Features:**
+
+- ✅ `web_search`: Powered by Tavily API (93.3% accuracy on SimpleQA benchmark)
+- ✅ `http_request`: Full HTTP client with headers, query params, JSON/text parsing
+- ✅ `fetch_url`: HTML → Markdown conversion with Mozilla Readability
+- ✅ Article extraction: Removes navigation, ads, and extracts main content
+- ✅ Result eviction: Large responses automatically saved to filesystem
+- ✅ CLI approval: `web_search` and `fetch_url` require user approval in Safe Mode
+
 ### Execute Tool (Sandbox Backends)
 
 When using a `LocalSandbox` backend (or any `SandboxBackendProtocol`), the `execute` tool is **automatically added**:
@@ -392,8 +459,18 @@ for await (const event of agent.streamWithEvents({ prompt: 'Build a todo app' })
 | `file-write-start` | File write starting (for preview) |
 | `file-written` | File was written |
 | `file-edited` | File was edited |
+| `file-read` | File was read |
+| `ls` | Directory listing completed |
+| `glob` | File pattern search completed |
+| `grep` | Text search completed |
 | `execute-start` | Command execution started (sandbox backends) |
 | `execute-finish` | Command execution finished with exit code (sandbox backends) |
+| `web-search-start` | Web search initiated with query |
+| `web-search-finish` | Web search completed with result count |
+| `http-request-start` | HTTP request started with method and URL |
+| `http-request-finish` | HTTP request completed with status code |
+| `fetch-url-start` | URL fetch initiated |
+| `fetch-url-finish` | URL fetch completed (success/failure) |
 | `subagent-start` | Subagent spawned |
 | `subagent-finish` | Subagent completed |
 | `done` | Generation complete |
@@ -657,6 +734,23 @@ bun run cli
 # With options
 bunx ai-sdk-deep-agent --model anthropic/claude-haiku-4-5-20251001
 ```
+
+**API Keys:**
+
+The CLI automatically loads API keys from:
+
+1. Environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `TAVILY_API_KEY`)
+2. `.env` or `.env.local` file in the working directory
+
+Example `.env` file:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+TAVILY_API_KEY=tvly-...  # For web_search tool
+```
+
+**Note:** Web tools (`web_search`, `http_request`, `fetch_url`) are only available when `TAVILY_API_KEY` is set. Without it, the CLI works normally but web tools are disabled.
 
 ### CLI Commands
 
