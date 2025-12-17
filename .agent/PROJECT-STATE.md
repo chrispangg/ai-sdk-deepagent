@@ -24,6 +24,9 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [x] **Human-in-the-Loop (HITL)** - Interrupt agent for tool approval/rejection via `interruptOn` config; CLI supports Safe/Auto-approve modes
 - [x] **Checkpointer Support** - Persist agent state between invocations (pause/resume); includes `MemorySaver`, `FileSaver`, `KeyValueStoreSaver`; CLI session management via `--session` flag
 - [x] **Web Tools** - `web_search` (Tavily API), `http_request`, `fetch_url` with HTML → Markdown conversion; follows LangChain approval pattern (approval required for `web_search` and `fetch_url` only)
+- [x] **Middleware Architecture** - AI SDK v6 `wrapLanguageModel` support for logging, caching, RAG, guardrails; supports single or array of middleware; non-breaking addition via optional `middleware` parameter
+- [x] **Skills System** - Dynamic skill loading from SKILL.md files with YAML frontmatter; progressive disclosure pattern (metadata in system prompt, full content loaded on-demand); supports user-level and project-level skills with override logic
+- [x] **Agent Memory Middleware** - Long-term memory from agent.md files (plain markdown); two-tier system (user: `~/.deepagents/{agentId}/agent.md`, project: `[git-root]/.deepagents/agent.md`); closure-based caching for performance; auto-creates user directory, requests approval for project directory; supports additional .md files for specialized context; skills also load from `.deepagents/{agentId}/skills/`
 
 ---
 
@@ -35,12 +38,6 @@ _No critical features pending_
 
 ### High Priority
 
-- [ ] **Middleware Architecture** 🎯 **[TOP PRIORITY]** - Composable `wrapModel`/`wrapToolCall`/`transformMessages` hooks
-  - **Why**: Foundational for production use (logging, monitoring, retry logic, custom behaviors)
-  - **Impact**: Unlocks Agent Memory, Skills System, and custom tool behaviors
-  - **Effort**: 2-3 days (non-breaking, add `middleware: AgentMiddleware[]` param)
-  - **Reference**: See `.refs/deepagentsjs/src/middleware/` for LangChain's pattern
-
 - [ ] **Async Backend Methods** ⚠️ **[BREAKING]** - Full async variants of all backend operations
   - **Why**: Current sync methods block event loop, limits scalability
   - **Impact**: Better performance for I/O-heavy operations
@@ -48,14 +45,6 @@ _No critical features pending_
   - **Note**: Schedule for next major version (v0.2.0 or v1.0.0)
 
 ### Medium Priority
-
-- [ ] **Skills System** - Load pluggable capabilities from SKILL.md files
-  - **Depends on**: Middleware Architecture (for custom tool injection)
-  - **Impact**: Enables modular agents, community contributions, agent marketplaces
-
-- [ ] **Agent Memory Middleware** - Long-term memory from agent.md files
-  - **Depends on**: Middleware Architecture
-  - **Impact**: Persistent agent personalities and context
 
 - [ ] **StoreBackend** - LangGraph BaseStore adapter for cross-thread persistence
   - **Note**: Lower priority since PersistentBackend already handles similar use cases
@@ -90,24 +79,22 @@ _No critical features pending_
 - Reference Python implementation: `.refs/deepagents/`
 - AI SDK v6 primitive: `ToolLoopAgent` from `ai` package
 
-## Priority Rationale (Updated 2025-12-15)
+## Priority Rationale (Updated 2025-12-17)
 
-**Why Middleware Architecture First?**
+**Completed Core Features (as of 2025-12-17):**
 
-1. **Force Multiplier**: Unlocks Skills System and Agent Memory as middleware plugins
-2. **Production-Ready**: Essential for logging, monitoring, retry logic in enterprise deployments
-3. **Non-Breaking**: Can be added alongside existing API without disrupting users
-4. **Reference Alignment**: Matches LangChain's DeepAgents architecture pattern
+✅ **Middleware Architecture** - Implemented using AI SDK v6's `wrapLanguageModel`; enables logging, caching, RAG, and guardrails
+✅ **Skills System** - Implemented with YAML frontmatter parsing and progressive disclosure pattern
+✅ **Web Tools** - Implemented with Tavily search, HTTP client, and web scraping capabilities
 
-**Implementation Sequence:**
+**Current Priority:**
 
-1. Middleware Architecture (2-3 days) → Foundation for extensibility
-2. Web Tools (1-2 days) → Quick user value win
-3. Skills System (2-3 days) → Builds on middleware, enables community contributions
-4. Async Backend Methods (2-3 days, breaking) → Save for v0.2.0/v1.0.0
+1. **Async Backend Methods** (Breaking, deferred to v0.2.0/v1.0.0) - Full async variants for better I/O performance
+2. **Agent Memory Middleware** - Long-term memory from agent.md files (now unblocked by middleware implementation)
+3. **StoreBackend** - LangGraph BaseStore adapter (lower priority, PersistentBackend sufficient for now)
 
 **Deferred Features:**
 
-- **StoreBackend**: PersistentBackend already handles cross-conversation memory adequately
 - **Cloud Sandboxes**: Low demand, implement when users request specific providers
 - **Structured Output**: Nice-to-have, can be middleware later
+- **Custom Tool Descriptions**: Not needed with current Zod-based approach

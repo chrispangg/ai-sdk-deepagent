@@ -225,6 +225,54 @@ const agent6 = createDeepAgent({
 });
 ```
 
+### Agent Memory
+
+Give your agent persistent memory across conversations using the agent memory middleware:
+
+```typescript
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
+
+// Option 1: Using agentId (recommended - enables both memory and skills)
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+  agentId: 'my-coding-assistant',
+  // Memory auto-loaded from:
+  // - ~/.deepagents/my-coding-assistant/agent.md (user-level)
+  // - .deepagents/agent.md (project-level, if in git repo)
+});
+
+// Option 2: Using middleware directly (for advanced control)
+const memoryMiddleware = createAgentMemoryMiddleware({
+  agentId: 'my-agent',
+  requestProjectApproval: async (projectPath) => {
+    // Optionally request user approval before creating .deepagents/ directory
+    console.log(`Create memory directory in ${projectPath}?`);
+    return true;
+  },
+});
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-5-20250929'),
+  middleware: memoryMiddleware,
+});
+```
+
+**Memory files are plain markdown**:
+
+```markdown
+# My Coding Assistant
+
+## User Preferences
+- Prefers 2-space indentation
+- Likes comprehensive JSDoc comments
+
+## Working Style
+- Ask clarifying questions before implementing
+- Consider edge cases and error handling
+```
+
+The agent can read and update its own memory using filesystem tools. See [Agent Memory Documentation](./docs/agent-memory.md) for details.
+
 ### Prompt Caching (Anthropic)
 
 Enable prompt caching for improved performance with Anthropic models:

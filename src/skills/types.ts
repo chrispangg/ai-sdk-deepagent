@@ -37,4 +37,17 @@ export interface SkillLoadOptions {
    * Project-level skills directory (e.g., ./.deepagents/skills/)
    */
   projectSkillsDir?: string;
+
+  /**
+   * Optional agent ID for loading agent-specific skills.
+   * When provided, looks for skills in ~/.deepagents/{agentId}/skills/
+   * and .deepagents/skills/ (project-level, shared across agents).
+   */
+  agentId?: string;
+
+  /**
+   * Optional working directory for detecting project root.
+   * Only used when agentId is provided.
+   */
+  workingDirectory?: string;
 }

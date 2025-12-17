@@ -1,6 +1,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import os from "node:os";
 import type { SkillMetadata, SkillLoadOptions } from "./types.ts";
+import { findGitRoot } from "../utils/project-detection.js";
 
 /**
  * Parse YAML frontmatter from a SKILL.md file.
@@ -132,24 +134,54 @@ async function listSkillsInDirectory(
 /**
  * List all skills from user and project directories.
  * Project skills override user skills with the same name.
+ *
+ * Supports two modes:
+ * 1. Legacy mode: Use userSkillsDir and projectSkillsDir directly (deprecated)
+ * 2. Agent mode: Use agentId to load from ~/.deepagents/{agentId}/skills/ and .deepagents/skills/
  */
 export async function listSkills(
   options: SkillLoadOptions
 ): Promise<SkillMetadata[]> {
-  const { userSkillsDir, projectSkillsDir } = options;
+  const { userSkillsDir, projectSkillsDir, agentId, workingDirectory } = options;
   const skillsMap = new Map<string, SkillMetadata>();
 
+  // Determine directories based on mode
+  let resolvedUserSkillsDir = userSkillsDir;
+  let resolvedProjectSkillsDir = projectSkillsDir;
+
+  if (agentId) {
+    // Agent mode: Load from .deepagents/{agentId}/skills/
+    resolvedUserSkillsDir = path.join(os.homedir(), '.deepagents', agentId, 'skills');
+
+    // Detect project root and use .deepagents/skills/ (shared across agents)
+    const gitRoot = await findGitRoot(workingDirectory || process.cwd());
+    if (gitRoot) {
+      resolvedProjectSkillsDir = path.join(gitRoot, '.deepagents', 'skills');
+    }
+
+    // Show deprecation warning if old params are used alongside agentId
+    if (userSkillsDir || projectSkillsDir) {
+      console.warn(
+        '[Skills] agentId parameter takes precedence over userSkillsDir/projectSkillsDir. ' +
+        'The latter parameters are deprecated and will be ignored.'
+      );
+    }
+  } else if (!userSkillsDir && !projectSkillsDir) {
+    // No skills directories provided at all
+    return [];
+  }
+
   // Load user skills first
-  if (userSkillsDir) {
-    const userSkills = await listSkillsInDirectory(userSkillsDir, 'user');
+  if (resolvedUserSkillsDir) {
+    const userSkills = await listSkillsInDirectory(resolvedUserSkillsDir, 'user');
     for (const skill of userSkills) {
       skillsMap.set(skill.name, skill);
     }
   }
 
   // Load project skills second (override user skills)
-  if (projectSkillsDir) {
-    const projectSkills = await listSkillsInDirectory(projectSkillsDir, 'project');
+  if (resolvedProjectSkillsDir) {
+    const projectSkills = await listSkillsInDirectory(resolvedProjectSkillsDir, 'project');
     for (const skill of projectSkills) {
       skillsMap.set(skill.name, skill); // Override user skill if exists
     }

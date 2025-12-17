@@ -118,6 +118,7 @@ export class DeepAgent {
       interruptOn,
       checkpointer,
       skillsDir,
+      agentId,
     } = params;
 
     // Wrap model with middleware if provided
@@ -142,9 +143,22 @@ export class DeepAgent {
     this.interruptOn = interruptOn;
     this.checkpointer = checkpointer;
 
-    // Load skills if directory provided
-    if (skillsDir) {
-      this.loadSkills(skillsDir).catch(error => {
+    // Load skills - prefer agentId over legacy skillsDir
+    if (agentId) {
+      // Show deprecation warning if skillsDir is also provided
+      if (skillsDir) {
+        console.warn(
+          '[DeepAgent] agentId parameter takes precedence over skillsDir. ' +
+          'skillsDir is deprecated and will be ignored.'
+        );
+      }
+
+      this.loadSkills({ agentId }).catch(error => {
+        console.warn('[DeepAgent] Failed to load skills:', error);
+      });
+    } else if (skillsDir) {
+      // Legacy mode: use skillsDir
+      this.loadSkills({ skillsDir }).catch(error => {
         console.warn('[DeepAgent] Failed to load skills:', error);
       });
     }
@@ -254,13 +268,16 @@ export class DeepAgent {
 
   /**
    * Load skills from directory asynchronously.
+   * Supports both legacy skillsDir and new agentId modes.
    */
-  private async loadSkills(skillsDir: string) {
+  private async loadSkills(options: { skillsDir?: string; agentId?: string }) {
     const { listSkills } = await import("./skills/load.ts");
 
-    const skills = await listSkills({
-      projectSkillsDir: skillsDir,
-    });
+    const skills = await listSkills(
+      options.agentId
+        ? { agentId: options.agentId }
+        : { projectSkillsDir: options.skillsDir }
+    );
 
     this.skillsMetadata = skills.map(s => ({
       name: s.name,

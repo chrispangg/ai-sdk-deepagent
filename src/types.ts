@@ -9,6 +9,40 @@ import type { BaseCheckpointSaver, ResumeOptions } from "./checkpointer/types.ts
 export type { ModelMessage, LanguageModel };
 
 /**
+ * Configuration options for agent memory middleware.
+ */
+export interface AgentMemoryOptions {
+  /**
+   * Unique identifier for the agent (e.g., "code-architect", "research-agent").
+   * Used to locate agent-specific memory at ~/.deepagents/{agentId}/agent.md
+   */
+  agentId: string;
+
+  /**
+   * Optional working directory for project-level memory detection.
+   * Defaults to process.cwd().
+   */
+  workingDirectory?: string;
+
+  /**
+   * Optional custom path for user-level .deepagents directory.
+   * Defaults to os.homedir() + '/.deepagents'.
+   *
+   * Useful for testing or custom deployment environments.
+   */
+  userDeepagentsDir?: string;
+
+  /**
+   * Optional callback to request user approval for creating project-level .deepagents/ directory.
+   * If not provided, project memory will be silently skipped if directory doesn't exist.
+   *
+   * @param projectPath - Absolute path to the detected git root
+   * @returns Promise<boolean> - true if user approves, false otherwise
+   */
+  requestProjectApproval?: (projectPath: string) => Promise<boolean>;
+}
+
+/**
  * Todo item for task planning and tracking.
  */
 export interface TodoItem {
@@ -428,12 +462,36 @@ export interface CreateDeepAgentParams {
    *
    * Project skills override user skills with the same name.
    *
+   * @deprecated Use `agentId` instead for automatic directory resolution
+   *
    * @example
    * ```typescript
    * skillsDir: './skills'
    * ```
    */
   skillsDir?: string;
+
+  /**
+   * Optional agent identifier for loading agent-specific memory and skills.
+   *
+   * When provided, the agent will:
+   * - Load agent memory from ~/.deepagents/{agentId}/agent.md (user-level)
+   * - Load agent memory from [git-root]/.deepagents/agent.md (project-level)
+   * - Load skills from ~/.deepagents/{agentId}/skills/ (user-level)
+   * - Load skills from [git-root]/.deepagents/skills/ (project-level, shared)
+   *
+   * This enables persistent memory and skill libraries organized by agent identity.
+   *
+   * @example
+   * ```typescript
+   * const agent = createDeepAgent({
+   *   model: anthropic('claude-sonnet-4-20250514'),
+   *   agentId: 'code-architect',
+   *   // Skills and memory auto-loaded from .deepagents/code-architect/
+   * });
+   * ```
+   */
+  agentId?: string;
 }
 
 /**
