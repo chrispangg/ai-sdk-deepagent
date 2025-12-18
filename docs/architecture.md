@@ -189,3 +189,46 @@ const agent4 = createDeepAgent({
 ```
 
 **CLI Backward Compatibility**: The CLI internally uses `parseModelString()` from `src/utils/model-parser.ts` to convert string formats like `"anthropic/claude-sonnet-4-20250514"` into `LanguageModel` instances. This is only for the CLI - when using the library programmatically, always pass provider instances.
+
+## Structured Output
+
+### Implementation
+
+DeepAgent supports structured output via AI SDK v6's ToolLoopAgent native `output` parameter:
+
+**Architecture**:
+
+- Optional `output: { schema, description? }` in `CreateDeepAgentParams`
+- Pass-through to ToolLoopAgent constructor
+- Output exposed in `generate()`, `stream()`, and `streamWithEvents()` results
+- Subagents can have their own output schemas
+
+**Type Safety**:
+
+- `result.output` typed based on Zod schema
+- TypeScript infers types automatically
+- Validation by Zod at runtime
+
+**Reference**: [ToolLoopAgent Output Parsing](https://v6.ai-sdk.dev/docs/reference/ai-sdk-core/tool-loop-agent#agent-with-output-parsing)
+
+### Subagent Structured Output
+
+Subagents can return structured output to parent agents:
+
+1. **SubAgent interface**: Optional `output` field with Zod schema
+2. **Registry storage**: Output config stored with subagent registration
+3. **Result formatting**: Structured output appended as JSON to text response
+4. **Parent consumption**: Parent agent receives formatted text with JSON
+
+**Example Format**:
+
+```
+Research completed successfully.
+
+[Structured Output]
+{
+  "summary": "AI agents use tools to interact with external systems",
+  "findings": ["Tool calling", "State management", "Error handling"],
+  "confidence": 0.9
+}
+```

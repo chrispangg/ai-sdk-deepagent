@@ -4,6 +4,7 @@
 
 import type { ToolSet, ModelMessage, LanguageModel, LanguageModelMiddleware } from "ai";
 import type { BaseCheckpointSaver, ResumeOptions } from "./checkpointer/types.ts";
+import type { z } from "zod";
 
 // Re-export for convenience
 export type { ModelMessage, LanguageModel };
@@ -190,11 +191,39 @@ export interface SubAgent {
    * Useful for using faster/cheaper models for specific tasks.
    */
   model?: LanguageModel;
-  /** 
+  /**
    * Optional interrupt configuration for this subagent.
    * If not provided, uses the parent agent's interruptOn config.
    */
   interruptOn?: InterruptOnConfig;
+
+  /**
+   * Optional structured output configuration for this subagent.
+   * When provided, the subagent returns typed, validated output to the parent agent.
+   *
+   * @example
+   * ```typescript
+   * {
+   *   name: 'research-agent',
+   *   description: 'Research specialist',
+   *   systemPrompt: 'You conduct thorough research...',
+   *   output: {
+   *     schema: z.object({
+   *       summary: z.string(),
+   *       sources: z.array(z.string()),
+   *       confidence: z.number(),
+   *     }),
+   *     description: 'Research findings with sources',
+   *   },
+   * }
+   * ```
+   */
+  output?: {
+    /** Zod schema defining the expected output structure */
+    schema: z.ZodType<any>;
+    /** Optional description of the output format */
+    description?: string;
+  };
 }
 
 /**
@@ -492,6 +521,49 @@ export interface CreateDeepAgentParams {
    * ```
    */
   agentId?: string;
+
+  /**
+   * Optional configuration for structured output parsing.
+   *
+   * When provided, the agent's final output will be parsed and validated against the schema
+   * using ToolLoopAgent's native output parsing feature.
+   *
+   * @see https://v6.ai-sdk.dev/docs/reference/ai-sdk-core/tool-loop-agent#agent-with-output-parsing
+   *
+   * @example Basic usage
+   * ```typescript
+   * const agent = createDeepAgent({
+   *   model: anthropic('claude-sonnet-4-20250514'),
+   *   output: {
+   *     schema: z.object({
+   *       sentiment: z.enum(['positive', 'negative', 'neutral']),
+   *       score: z.number(),
+   *       summary: z.string(),
+   *     }),
+   *   },
+   * });
+   * ```
+   *
+   * @example With description
+   * ```typescript
+   * const agent = createDeepAgent({
+   *   model: anthropic('claude-sonnet-4-20250514'),
+   *   output: {
+   *     schema: z.object({
+   *       findings: z.array(z.string()),
+   *       confidence: z.number().min(0).max(1),
+   *     }),
+   *     description: 'Research findings with confidence score',
+   *   },
+   * });
+   * ```
+   */
+  output?: {
+    /** Zod schema defining the expected output structure */
+    schema: z.ZodType<any>;
+    /** Optional description of the output format (helps LLM understand structure) */
+    description?: string;
+  };
 }
 
 /**
@@ -1103,6 +1175,8 @@ export interface DoneEvent {
   text?: string;
   /** Updated conversation history including the assistant's response */
   messages?: ModelMessage[];
+  /** Structured output if schema was provided (validated by Zod) */
+  output?: unknown;  // Will be typed based on schema at call site
 }
 
 /**

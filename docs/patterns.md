@@ -247,6 +247,113 @@ test("agent creates files", async () => {
 });
 ```
 
+## Structured Output Pattern
+
+### When to Use
+
+Use structured output when you need:
+- Type-safe agent responses
+- Validated data format
+- Consistent output structure
+- Integration with typed systems
+
+### Basic Pattern
+
+```typescript
+import { createDeepAgent } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+import { z } from 'zod';
+
+const schema = z.object({
+  field1: z.string(),
+  field2: z.number(),
+});
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  output: { schema },
+});
+
+const result = await agent.generate({ prompt: "..." });
+// result.output is typed as { field1: string, field2: number }
+```
+
+### Advanced Patterns
+
+#### Complex Nested Schemas
+
+```typescript
+const schema = z.object({
+  summary: z.string(),
+  details: z.array(z.object({
+    title: z.string(),
+    data: z.record(z.string(), z.unknown()),
+  })),
+  metadata: z.object({
+    confidence: z.number(),
+    sources: z.array(z.string()).optional(),
+  }),
+});
+```
+
+#### With Discriminated Unions
+
+```typescript
+const schema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('success'), data: z.string() }),
+  z.object({ type: z.literal('error'), message: z.string() }),
+]);
+```
+
+#### Combining with Other Features
+
+```typescript
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  middleware: [loggingMiddleware],
+  checkpointer: new MemorySaver(),
+  output: { schema: mySchema },
+});
+```
+
+### Subagent Structured Output
+
+```typescript
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  subagents: [
+    {
+      name: 'researcher',
+      description: 'Research specialist',
+      systemPrompt: 'Conduct thorough research...',
+      output: {
+        schema: z.object({
+          summary: z.string(),
+          sources: z.array(z.string()),
+          confidence: z.number(),
+        }),
+      },
+    },
+  ],
+});
+
+// Subagent results include formatted structured output:
+// "Research complete. [Structured Output]\n{\"summary\": \"...\", \"sources\": [...], \"confidence\": 0.9}"
+```
+
+### Common Pitfalls
+
+1. **Schema too strict**: LLMs may struggle with very specific constraints
+2. **Missing descriptions**: Add `.describe()` to help LLM understand fields
+3. **Optional vs Required**: Be explicit about what's optional
+
+### Best Practices
+
+1. **Start simple**: Use basic types, add complexity as needed
+2. **Add descriptions**: Help the LLM understand the schema
+3. **Test validation**: Verify schema handles edge cases
+4. **Type inference**: Let TypeScript infer types from schema
+
 ## See Also
 
 - [Architecture Documentation](./architecture.md) - Core components and systems

@@ -29,6 +29,12 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [x] **Agent Memory Middleware** - Long-term memory from agent.md files (plain markdown); two-tier system (user: `~/.deepagents/{agentId}/agent.md`, project: `[git-root]/.deepagents/agent.md`); closure-based caching for performance; auto-creates user directory, requests approval for project directory; supports additional .md files for specialized context; skills also load from `.deepagents/{agentId}/skills/`
 - [x] **readRaw Backend Method** - Raw FileData without line formatting (implemented in all backends)
 - [x] **Per-Subagent Interrupt Config** - Different HITL rules per subagent (via `SubAgent.interruptOn`)
+- [x] **Structured Output** - `output` parameter for typed agent responses via Zod schemas
+  - Uses ToolLoopAgent's native output parsing
+  - Full TypeScript type inference
+  - Works alongside all existing features
+  - Non-breaking optional parameter
+  - Supports subagent structured output delegation
 
 ---
 
@@ -39,6 +45,12 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 _No critical features pending_
 
 ### High Priority
+
+- [ ] **ToolLoopAgent Constructor Passthrough** - Allow users to pass all ToolLoopAgent constructor options
+  - **Why**: Enable full AI SDK v6 ToolLoopAgent features (custom stopWhen, maxRetries, etc.) while keeping DeepAgent harness
+  - **Impact**: Better flexibility for advanced users, maintains AI SDK compatibility
+  - **Effort**: 1-2 days, add passthrough options to DeepAgentOptions
+  - **Note**: Should preserve DeepAgent defaults (systemPrompt, tools) but allow overrides
 
 - [ ] **Async Backend Methods** ⚠️ **[BREAKING]** - Full async variants of all backend operations
   - **Why**: Current sync methods block event loop, limits scalability
@@ -56,7 +68,6 @@ _No critical features pending_
 
 ### Lower Priority
 
-- [ ] **Structured Output** - `responseFormat` for typed agent outputs
 - [ ] **Context Schema** - Custom state types beyond default
 - [ ] **Compiled Subagents** - Pre-built runnable subagent instances
 - [ ] **Custom Tool Descriptions** - Override default tool descriptions

@@ -62,6 +62,68 @@ console.log('Todos:', result.state.todos);
 console.log('Files:', Object.keys(result.state.files));
 ```
 
+## Structured Output
+
+Deep agents can return typed, validated objects using Zod schemas alongside text responses:
+
+```typescript
+import { createDeepAgent } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+import { z } from 'zod';
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  output: {
+    schema: z.object({
+      summary: z.string(),
+      keyPoints: z.array(z.string()),
+      confidence: z.number().min(0).max(1),
+    }),
+    description: 'Research findings with confidence score',
+  },
+});
+
+const result = await agent.generate({
+  prompt: "Research latest AI developments",
+});
+
+// Fully typed output
+console.log(result.output?.summary);      // string
+console.log(result.output?.keyPoints);    // string[]
+console.log(result.output?.confidence);   // number
+```
+
+**Key Features:**
+- **Type Safety**: `result.output` is fully typed based on your Zod schema
+- **Validation**: Automatic runtime validation against the schema
+- **Works with Tools**: Can be combined with tools for complex workflows
+- **Optional**: Completely backwards compatible - existing code works unchanged
+
+### Subagent Structured Output
+
+Subagents can also have their own structured output schemas:
+
+```typescript
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  subagents: [
+    {
+      name: 'researcher',
+      description: 'Conducts research',
+      systemPrompt: 'You are a research specialist...',
+      output: {
+        schema: z.object({
+          findings: z.array(z.string()),
+          sources: z.array(z.string()),
+        }),
+      },
+    },
+  ],
+});
+```
+
+See [`examples/with-structured-output.ts`](./examples/with-structured-output.ts) for more examples.
+
 ## Configuration
 
 ### Model

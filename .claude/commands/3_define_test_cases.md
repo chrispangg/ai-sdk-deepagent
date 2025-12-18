@@ -41,6 +41,7 @@ describe("Feature Name", () => {
 ```
 
 **Structure Rules**:
+
 - **Given**: Setup phase - create test state and preconditions
 - **When**: Action phase - trigger the behavior under test
 - **Then**: Assertion phase - verify expected outcomes
@@ -50,16 +51,19 @@ describe("Feature Name", () => {
 ## DSL Helper Guidelines
 
 Create helper functions ONLY when:
+
 - **Duplication threshold**: Same setup appears 3+ times
 - **Complex assertions**: 4+ expect() calls that logically belong together
 - **Mock configuration**: Complex mock setups reused frequently
 
 Do NOT create helpers for:
+
 - Simple assertions (1-2 expect() calls)
 - One-off setups
 - Anything that doesn't significantly reduce duplication
 
 **Good helper examples**:
+
 ```typescript
 // Used 15+ times across all tests
 function createMockState(): DeepAgentState {
@@ -76,6 +80,7 @@ function setupAuthenticatedUser() {
 ```
 
 **Bad helper examples** (don't create these):
+
 ```typescript
 // Only used 2 times
 function expectToolsExist(tools: any) {
@@ -93,6 +98,7 @@ function createEmptyArray() {
 When defining test cases, ensure you cover:
 
 ### 1. Happy Paths
+
 Standard successful flows where everything works as expected.
 
 ```typescript
@@ -110,6 +116,7 @@ test("creates user successfully with valid data", async () => {
 ```
 
 ### 2. Edge Cases
+
 Boundary conditions and unusual but valid inputs.
 
 ```typescript
@@ -130,6 +137,7 @@ test("handles maximum allowed items", async () => {
 ```
 
 ### 3. Error Scenarios
+
 Invalid inputs, service failures, timeout conditions.
 
 ```typescript
@@ -147,6 +155,7 @@ test("handles API timeout gracefully", async () => {
 ```
 
 ### 4. Boundary Conditions
+
 Maximum/minimum values, empty states, null cases.
 
 ```typescript
@@ -164,6 +173,7 @@ test("rejects empty input", async () => {
 ```
 
 ### 5. Authorization/Permission Scenarios
+
 Permission-based access and security checks.
 
 ```typescript
@@ -187,6 +197,7 @@ When the user asks you to define test cases:
 ### 1. Understand the Feature
 
 Ask clarifying questions about:
+
 - What functionality is being tested
 - Which systems/services are involved
 - Expected behaviors and outcomes
@@ -196,6 +207,7 @@ Ask clarifying questions about:
 ### 2. Research Existing Test Patterns
 
 **IMPORTANT**: Before writing any tests, use the Task tool to launch a codebase-pattern-finder agent to:
+
 - Find existing test files and their structure
 - Identify common helper patterns
 - Understand how mocks are configured
@@ -203,6 +215,7 @@ Ask clarifying questions about:
 - Learn test organization conventions
 
 Example agent invocation:
+
 ```
 Use the Task tool with subagent_type="codebase-pattern-finder" to find:
 - Existing test files (*.test.ts) and their structure
@@ -218,6 +231,7 @@ Create the actual test code file with:
 **File location**: `test/[feature]/[feature].test.ts`
 
 **Structure**:
+
 ```typescript
 /**
  * BDD Tests: [Feature Name]
@@ -272,6 +286,7 @@ describe("[Phase Name]", () => {
 ```
 
 **Key points**:
+
 - Use descriptive test names (not generic "it works")
 - Group related tests in describe blocks by feature area/phase
 - Include Given-When-Then comments in every test
@@ -285,6 +300,7 @@ Create a minimal index file for quick reference:
 **File location**: `docs/tickets/TICKET-NAME/test-cases.md`
 
 **Structure**:
+
 ```markdown
 # Test Cases: [Feature Name]
 
@@ -333,6 +349,7 @@ bun test --coverage test/[feature]/[feature].test.ts
 ### 5. Determine Ticket Name
 
 If not provided, infer ticket folder from context or ask the user for:
+
 - Ticket folder name (e.g., "005_web_tools")
 - Feature being tested (e.g., "web-tools", "user-auth")
 
@@ -345,6 +362,7 @@ When you complete this command, you must create TWO files:
 **Location**: `test/[feature]/[feature].test.ts`
 
 **Contents**:
+
 - File header with metadata
 - Import statements
 - Test helpers (only if duplication > 2x)
@@ -353,6 +371,7 @@ When you complete this command, you must create TWO files:
 - Direct assertions (no unnecessary abstraction)
 
 **Verification checklist**:
+
 - [ ] File passes `bun run typecheck`
 - [ ] Tests are runnable (may fail if production code doesn't exist yet)
 - [ ] Given-When-Then comments are clear
@@ -365,12 +384,14 @@ When you complete this command, you must create TWO files:
 **Location**: `docs/tickets/TICKET-NAME/test-cases.md`
 
 **Contents**:
+
 - Test file reference
 - Quick command examples
 - Test organization (phase → line numbers)
 - Coverage summary
 
 **Verification checklist**:
+
 - [ ] File is < 50 lines
 - [ ] Line numbers reference actual test file
 - [ ] Commands are correct (bun test paths)
@@ -381,11 +402,13 @@ When you complete this command, you must create TWO files:
 After running `/3_define_test_cases web-tools`, you would create:
 
 **File 1**: `test/tools/web.test.ts` (~300-400 lines)
+
 - Actual runnable tests with Given-When-Then structure
 - Minimal helpers (only createMockState, used 15+ times)
 - 25 tests covering all scenarios
 
 **File 2**: `docs/tickets/005_web_tools/test-cases.md` (~40 lines)
+
 - Lightweight index with line references
 - Quick start commands
 - Coverage summary

@@ -31,12 +31,12 @@ Then wait for the user's input.
 ### Step 1: Context Gathering & Initial Analysis
 
 1. **Read all mentioned files immediately and FULLY**
-2. **Spawn initial research tasks to gather context**:
+2. **Read all mentioned research documents immediately and FULLY**
+3. **Spawn initial research tasks to gather context**:
    - Use the **codebase-locator** agent to find all related files
    - Use the **codebase-analyzer** agent to understand current implementation
    - Use the **codebase-pattern-finder** agent to find similar features to model after
-
-3. **Present informed understanding and focused questions**:
+4. **Present informed understanding and focused questions**:
    Based on research, present findings and ask only questions that require human judgment
 
 ### Step 2: Research & Discovery
@@ -69,6 +69,7 @@ Does this phasing make sense?
 Check existing ticket folders to determine the ticket name, then:
 
 - Create folder `docs/tickets/TICKET-NAME/` if it doesn't exist
+- If research document exists, move it to the ticket folder, rename it to `research.md`
 - Write the plan to `docs/tickets/TICKET-NAME/plan.md`
 
 ```markdown

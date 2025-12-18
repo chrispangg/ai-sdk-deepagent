@@ -2,7 +2,7 @@
  * Subagent tool for task delegation using AI SDK v6 ToolLoopAgent.
  */
 
-import { tool, ToolLoopAgent, stepCountIs, type ToolSet, type LanguageModel } from "ai";
+import { tool, ToolLoopAgent, stepCountIs, Output, type ToolSet, type LanguageModel } from "ai";
 import { z } from "zod";
 import type {
   SubAgent,
@@ -80,7 +80,12 @@ export function createSubagentTool(
   // Build subagent registry
   const subagentRegistry: Record<
     string,
-    { systemPrompt: string; tools: ToolSet; model: LanguageModel }
+    {
+      systemPrompt: string;
+      tools: ToolSet;
+      model: LanguageModel;
+      output?: { schema: z.ZodType<any>; description?: string };
+    }
   > = {};
   const subagentDescriptions: string[] = [];
 
@@ -102,6 +107,7 @@ export function createSubagentTool(
       systemPrompt: buildSubagentSystemPrompt(subagent.systemPrompt),
       tools: subagent.tools || defaultTools,
       model: subagent.model || defaultModel,
+      output: subagent.output,
     };
     subagentDescriptions.push(`- ${subagent.name}: ${subagent.description}`);
   }
@@ -171,7 +177,9 @@ export function createSubagentTool(
           instructions: subagentConfig.systemPrompt,
           tools: allTools,
           stopWhen: stepCountIs(50), // Allow substantial work
-        });
+          // Pass output configuration if subagent has one using AI SDK Output helper
+          ...(subagentConfig.output ? { output: Output.object(subagentConfig.output) } : {}),
+        } as any);
 
         const result = await subagentAgent.generate({ prompt: description });
 
@@ -180,16 +188,24 @@ export function createSubagentTool(
 
         const resultText = result.text || "Task completed successfully.";
 
+        // Format output for parent agent
+        let formattedResult = resultText;
+
+        // If subagent has structured output, include it in the response
+        if (subagentConfig.output && 'output' in result && result.output) {
+          formattedResult = `${resultText}\n\n[Structured Output]\n${JSON.stringify(result.output, null, 2)}`;
+        }
+
         // Emit subagent finish event
         if (onEvent) {
           onEvent({
             type: "subagent-finish",
             name: subagent_type,
-            result: resultText,
+            result: formattedResult,
           });
         }
 
-        return resultText;
+        return formattedResult;
       } catch (error: unknown) {
         const err = error as Error;
         const errorMessage = `Error executing subagent: ${err.message}`;

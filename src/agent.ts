@@ -8,11 +8,13 @@ import {
   generateText,
   streamText,
   wrapLanguageModel,
+  Output,
   type ToolSet,
   type StopCondition,
   type LanguageModel,
   type LanguageModelMiddleware,
 } from "ai";
+import type { z } from "zod";
 import type {
   CreateDeepAgentParams,
   DeepAgentState,
@@ -101,6 +103,7 @@ export class DeepAgent {
   private interruptOn?: InterruptOnConfig;
   private checkpointer?: BaseCheckpointSaver;
   private skillsMetadata: Array<{ name: string; description: string; path: string }> = [];
+  private outputConfig?: { schema: z.ZodType<any>; description?: string };
 
   constructor(params: CreateDeepAgentParams) {
     const {
@@ -119,6 +122,7 @@ export class DeepAgent {
       checkpointer,
       skillsDir,
       agentId,
+      output,
     } = params;
 
     // Wrap model with middleware if provided
@@ -142,6 +146,7 @@ export class DeepAgent {
     this.summarizationConfig = summarization;
     this.interruptOn = interruptOn;
     this.checkpointer = checkpointer;
+    this.outputConfig = output;
 
     // Load skills - prefer agentId over legacy skillsDir
     if (agentId) {
@@ -263,7 +268,9 @@ export class DeepAgent {
       instructions: this.systemPrompt,
       tools,
       stopWhen: stepCountIs(maxSteps ?? this.maxSteps),
-    });
+      // Pass output configuration if provided using AI SDK Output helper
+      ...(this.outputConfig ? { output: Output.object(this.outputConfig) } : {}),
+    } as any);
   }
 
   /**
@@ -599,12 +606,16 @@ export class DeepAgent {
         { role: "assistant", content: finalText } as ModelMessage,
       ];
 
+      // Extract output if present (from ToolLoopAgent's native output parsing)
+      const output = 'output' in result ? (result as any).output : undefined;
+
       // Yield done event with updated messages
       yield {
         type: "done",
         state,
         text: finalText,
         messages: updatedMessages,
+        ...(output !== undefined ? { output } : {}),
       };
       
       // Save final checkpoint after done event
