@@ -76,7 +76,8 @@ console.log(JSON.stringify((researchResult as any).output, null, 2));
 console.log("\n=== Example 3: Streaming with Structured Output ===\n");
 
 for await (const event of researchAgent.streamWithEvents({
-  prompt: "Briefly explain how agents use tools",
+  // Old way: prompt: "Briefly explain how agents use tools",
+  messages: [{ role: "user", content: "Briefly explain how agents use tools" }],
 })) {
   if (event.type === "text") {
     process.stdout.write(event.text);

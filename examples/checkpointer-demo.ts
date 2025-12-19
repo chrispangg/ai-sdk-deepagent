@@ -50,7 +50,8 @@ async function demo1_BasicPersistence() {
   // First interaction
   log('→ First interaction: Creating todos', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "Create a todo list with 3 items for building a simple web app",
+    // Old way: prompt: "Create a todo list with 3 items for building a simple web app",
+    messages: [{ role: "user", content: "Create a todo list with 3 items for building a simple web app" }],
     threadId,
   })) {
     if (event.type === 'text') {
@@ -65,7 +66,8 @@ async function demo1_BasicPersistence() {
   // Second interaction - agent should remember the todos
   log('\n\n→ Second interaction: Asking about previous todos', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "What was the first item on the todo list you just created?",
+    // Old way: prompt: "What was the first item on the todo list you just created?",
+    messages: [{ role: "user", content: "What was the first item on the todo list you just created?" }],
     threadId,
   })) {
     if (event.type === 'text') {
@@ -102,9 +104,13 @@ async function demo2_FilePersistence() {
   }
   
   for await (const event of agent.streamWithEvents({
-    prompt: existingCheckpoint 
-      ? "What have we discussed so far?" 
-      : "Write a file called 'notes.txt' with some project ideas",
+    // Old way: prompt: existingCheckpoint ? "What have we discussed so far?" : "Write a file called 'notes.txt' with some project ideas",
+    messages: [{
+      role: "user",
+      content: existingCheckpoint
+        ? "What have we discussed so far?"
+        : "Write a file called 'notes.txt' with some project ideas"
+    }],
     threadId,
   })) {
     if (event.type === 'text') {
@@ -143,7 +149,8 @@ async function demo3_ToolApprovalAutoDeny() {
   // Part 1: Approve the file write
   log('→ Part 1: Requesting file write with approval callback', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "Write a file called 'demo-config.json' with the content: {\"demo\": true}",
+    // Old way: prompt: "Write a file called 'demo-config.json' with the content: {\"demo\": true}",
+    messages: [{ role: "user", content: "Write a file called 'demo-config.json' with the content: {\"demo\": true}" }],
     threadId,
     onApprovalRequest: async (request) => {
       log(`\n⚠️  Approval requested for: ${request.toolName}`, colors.yellow);
@@ -162,7 +169,8 @@ async function demo3_ToolApprovalAutoDeny() {
   // Part 2: Deny the file write
   log('\n\n→ Part 2: Requesting another file write but denying it', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "Write a file called 'denied-file.json' with {\"denied\": true}",
+    // Old way: prompt: "Write a file called 'denied-file.json' with {\"denied\": true}",
+    messages: [{ role: "user", content: "Write a file called 'denied-file.json' with {\"denied\": true}" }],
     threadId,
     onApprovalRequest: async (request) => {
       log(`\n⚠️  Approval requested for: ${request.toolName}`, colors.yellow);
@@ -186,7 +194,8 @@ async function demo3_ToolApprovalAutoDeny() {
   });
 
   for await (const event of agent2.streamWithEvents({
-    prompt: "Write a file called 'auto-denied.json'",
+    // Old way: prompt: "Write a file called 'auto-denied.json'",
+    messages: [{ role: "user", content: "Write a file called 'auto-denied.json'" }],
   })) {
     if (event.type === 'text') {
       process.stdout.write(event.text);
@@ -209,7 +218,8 @@ async function demo4_ThreadIsolation() {
   // Create two separate threads
   log('→ Creating Thread A: Project Alpha', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "Remember: we're working on Project Alpha, a mobile app",
+    // Old way: prompt: "Remember: we're working on Project Alpha, a mobile app",
+    messages: [{ role: "user", content: "Remember: we're working on Project Alpha, a mobile app" }],
     threadId: 'thread-a',
   })) {
     if (event.type === 'text') {
@@ -219,7 +229,8 @@ async function demo4_ThreadIsolation() {
   
   log('\n\n→ Creating Thread B: Project Beta', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "Remember: we're working on Project Beta, a web dashboard",
+    // Old way: prompt: "Remember: we're working on Project Beta, a web dashboard",
+    messages: [{ role: "user", content: "Remember: we're working on Project Beta, a web dashboard" }],
     threadId: 'thread-b',
   })) {
     if (event.type === 'text') {
@@ -230,7 +241,8 @@ async function demo4_ThreadIsolation() {
   // Verify isolation
   log('\n\n→ Testing Thread A isolation:', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "What project are we working on?",
+    // Old way: prompt: "What project are we working on?",
+    messages: [{ role: "user", content: "What project are we working on?" }],
     threadId: 'thread-a',
   })) {
     if (event.type === 'text') {
@@ -240,7 +252,8 @@ async function demo4_ThreadIsolation() {
   
   log('\n\n→ Testing Thread B isolation:', colors.blue);
   for await (const event of agent.streamWithEvents({
-    prompt: "What project are we working on?",
+    // Old way: prompt: "What project are we working on?",
+    messages: [{ role: "user", content: "What project are we working on?" }],
     threadId: 'thread-b',
   })) {
     if (event.type === 'text') {
@@ -271,7 +284,8 @@ async function demo5_KeyValueStoreSaver() {
   log('  (In production, replace with RedisStore, DatabaseStore, etc.)', colors.dim);
   
   for await (const event of agent.streamWithEvents({
-    prompt: "Create a simple todo list",
+    // Old way: prompt: "Create a simple todo list",
+    messages: [{ role: "user", content: "Create a simple todo list" }],
     threadId: 'kv-demo',
   })) {
     if (event.type === 'text') {

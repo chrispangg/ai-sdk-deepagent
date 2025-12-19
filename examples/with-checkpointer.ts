@@ -18,7 +18,7 @@ async function main() {
   // First interaction
   console.log('=== First interaction ===');
   for await (const event of agent.streamWithEvents({
-    prompt: "Create a todo list for building a web app",
+    messages: [{ role: "user", content: "Create a todo list for building a web app" }],
     threadId,
   })) {
     if (event.type === 'text') {
@@ -27,11 +27,11 @@ async function main() {
       console.log(`\n[Checkpoint saved at step ${event.step}]`);
     }
   }
-  
+
   // Later: Resume the same thread
   console.log('\n\n=== Resuming session ===');
   for await (const event of agent.streamWithEvents({
-    prompt: "What was the first item on our todo list?",
+    messages: [{ role: "user", content: "What was the first item on our todo list?" }],
     threadId,
   })) {
     if (event.type === 'text') {

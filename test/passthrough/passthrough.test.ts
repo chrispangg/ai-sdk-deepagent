@@ -123,13 +123,12 @@ describe("ToolLoopAgent Passthrough - Working Tests", () => {
       generationOptions: {
         temperature: 0.3,
       },
-      // @ts-expect-error - loopControl should not be allowed
       loopControl: {
         onStepFinish: async () => {},
       },
     };
 
-    // Even though we're forcing it with ts-expect-error,
+    // Even though loopControl is provided,
     // it shouldn't be included in the SubAgent type
     const agent = createDeepAgent({
       model: mockModel as any,

@@ -1569,13 +1569,14 @@ export interface ToolEventContext {
  * Options for streamWithEvents method.
  */
 export interface StreamWithEventsOptions {
+  /** @deprecated Use messages instead for better conversation context support */
   /** The user's prompt/message */
   prompt?: string;  // Make optional for resume-only calls
   /** Maximum number of steps for the agent loop */
   maxSteps?: number;
   /** Shared state for todos and files */
   state?: DeepAgentState;
-  /** Conversation history for multi-turn conversations */
+  /** Conversation history for multi-turn conversations. Takes precedence over prompt. */
   messages?: ModelMessage[];
   /** Signal to abort the generation */
   abortSignal?: AbortSignal;

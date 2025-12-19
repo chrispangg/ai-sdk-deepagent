@@ -39,9 +39,9 @@ async function main() {
   console.log("📊 Example 1: Searching the web for AI news\n");
 
   const result1 = await agent.streamWithEvents({
-    prompt: "Search for the latest news about AI developments in 2025. Summarize the top 3 findings with sources.",
+    // Old way: prompt: "Search for the latest news about AI developments in 2025. Summarize the top 3 findings with sources.",
+    messages: [{ role: "user", content: "Search for the latest news about AI developments in 2025. Summarize the top 3 findings with sources." }],
     state: { todos: [], files: {} },
-    messages: [],
   });
 
   for await (const event of result1) {
@@ -60,9 +60,9 @@ async function main() {
   console.log("📄 Example 2: Fetching and analyzing a web page\n");
 
   const result2 = await agent.streamWithEvents({
-    prompt: "Fetch the Anthropic homepage and summarize what Anthropic does.",
+    // Old way: prompt: "Fetch the Anthropic homepage and summarize what Anthropic does.",
+    messages: [{ role: "user", content: "Fetch the Anthropic homepage and summarize what Anthropic does." }],
     state: { todos: [], files: {} },
-    messages: [],
   });
 
   for await (const event of result2) {
@@ -81,9 +81,9 @@ async function main() {
   console.log("🔌 Example 3: Making an HTTP request to a public API\n");
 
   const result3 = await agent.streamWithEvents({
-    prompt: "Use http_request to get data from https://api.github.com/repos/vercel/ai and tell me the repository description and star count.",
+    // Old way: prompt: "Use http_request to get data from https://api.github.com/repos/vercel/ai and tell me the repository description and star count.",
+    messages: [{ role: "user", content: "Use http_request to get data from https://api.github.com/repos/vercel/ai and tell me the repository description and star count." }],
     state: { todos: [], files: {} },
-    messages: [],
   });
 
   for await (const event of result3) {

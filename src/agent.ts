@@ -593,35 +593,97 @@ export class DeepAgent {
       }
     }
     
-    // Require prompt unless resuming
-    if (!options.prompt && !resume) {
+    // Require either prompt, messages, resume, or threadId with checkpoint
+    // Note: Empty messages array is allowed (treated as fresh start)
+    if (!options.prompt && !options.messages && !resume && !threadId) {
       yield {
         type: "error",
-        error: new Error("Either 'prompt' or 'resume' is required"),
+        error: new Error("Either 'prompt', 'messages', 'resume', or 'threadId' is required"),
       };
       return;
     }
-    
-    // If no prompt but resuming, use an empty prompt (the checkpoint has context)
-    const prompt = options.prompt || "";
 
-    // Build messages array: previous history + new user message
-    // Patch any dangling tool calls in the history first
-    patchedHistory = patchToolCalls(patchedHistory);
+    // Build messages with priority: explicit messages > prompt > checkpoint
+    let userMessages: ModelMessage[] = [];
+    let shouldUseCheckpointHistory = true;
 
-    // Apply summarization if enabled and needed
-    if (this.summarizationConfig?.enabled && patchedHistory.length > 0) {
-      const summarizationResult = await summarizeIfNeeded(patchedHistory, {
-        model: this.summarizationConfig.model || this.model,
-        tokenThreshold: this.summarizationConfig.tokenThreshold,
-        keepMessages: this.summarizationConfig.keepMessages,
-      });
-      patchedHistory = summarizationResult.messages;
+    if (options.messages && options.messages.length > 0) {
+      // Use explicit messages array (preferred)
+      userMessages = options.messages;
+      shouldUseCheckpointHistory = false; // Explicit messages replace checkpoint history
+
+      // Emit deprecation warning for prompt if also provided
+      if (options.prompt && process.env.NODE_ENV !== 'production') {
+        console.warn('prompt parameter is deprecated when messages are provided, using messages instead');
+      }
+    } else if (options.messages) {
+      // Empty messages array provided - clear checkpoint history and treat as reset
+      shouldUseCheckpointHistory = false;
+      patchedHistory = []; // Clear checkpoint history
+
+      // According to priority logic, even empty messages take precedence over prompt
+      // This means prompt is ignored even if messages is empty
+      if (options.prompt && process.env.NODE_ENV !== 'production') {
+        console.warn('prompt parameter is deprecated when empty messages are provided, prompt ignored');
+      }
+      // Empty messages case will be handled by validation below
+    } else if (options.prompt) {
+      // Convert prompt to message for backward compatibility
+      userMessages = [{ role: "user", content: options.prompt } as ModelMessage];
+
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('prompt parameter is deprecated, use messages instead');
+      }
+    }
+    // If neither messages nor prompt provided, use checkpoint history only
+
+    // Load checkpoint messages if available and not replaced by explicit messages
+    if (shouldUseCheckpointHistory && patchedHistory.length > 0) {
+      // Patch any dangling tool calls in the history first
+      patchedHistory = patchToolCalls(patchedHistory);
+
+      // Apply summarization if enabled and needed
+      if (this.summarizationConfig?.enabled && patchedHistory.length > 0) {
+        const summarizationResult = await summarizeIfNeeded(patchedHistory, {
+          model: this.summarizationConfig.model || this.model,
+          tokenThreshold: this.summarizationConfig.tokenThreshold,
+          keepMessages: this.summarizationConfig.keepMessages,
+        });
+        patchedHistory = summarizationResult.messages;
+      }
+    } else if (!shouldUseCheckpointHistory) {
+      // Explicit messages replace checkpoint history - clear patchedHistory
+      patchedHistory = [];
+    }
+
+    // Handle empty messages case
+    const hasEmptyMessages = options.messages && options.messages.length === 0;
+    const hasValidInput = userMessages.length > 0 || patchedHistory.length > 0;
+
+    // Special case: empty messages with no checkpoint history
+    if (hasEmptyMessages && !hasValidInput && !resume) {
+      // This is a "no-op" case - return done immediately with empty messages
+      yield {
+        type: "done",
+        text: "",
+        messages: [],
+        state,
+      };
+      return;
+    }
+
+    // Check if we have valid input: either user messages or checkpoint history
+    if (!hasValidInput && !resume) {
+      yield {
+        type: "error",
+        error: new Error("No valid input: provide either non-empty messages, prompt, or threadId with existing checkpoint"),
+      };
+      return;
     }
 
     const inputMessages: ModelMessage[] = [
       ...patchedHistory,
-      ...(prompt ? [{ role: "user", content: prompt } as ModelMessage] : []),
+      ...userMessages,
     ];
 
     // Event queue for collecting events from tool executions

@@ -20,7 +20,11 @@ async function main() {
 
   // Stream with events
   for await (const event of agent.streamWithEvents({
-    prompt: "Create a simple todo list for learning TypeScript, then write a brief guide to /typescript-guide.md",
+    // New way (preferred): use messages parameter
+    messages: [{ role: "user", content: "Create a simple todo list for learning TypeScript, then write a brief guide to /typescript-guide.md" }],
+
+    // Old way (still works but deprecated):
+    // prompt: "Create a simple todo list for learning TypeScript, then write a brief guide to /typescript-guide.md",
   })) {
     handleEvent(event);
   }
