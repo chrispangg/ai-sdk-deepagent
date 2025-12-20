@@ -26,6 +26,9 @@ const anthropic = createAnthropic({
 
 const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
 
+// Use test.skip when no API key is available
+const testWithApiKey = hasApiKey ? test : test.skip;
+
 // Create a mock tool for testing
 const createMockTool = (name: string) =>
   tool({
@@ -78,7 +81,7 @@ describe("Phase 1: Core Message Handling", () => {
   });
 
   describe("Messages Parameter (Primary)", () => {
-    test("uses messages parameter when provided", async () => {
+    testWithApiKey("uses messages parameter when provided", async () => {
       // Given: Messages array is provided
       const messages: ModelMessage[] = [
         { role: "user", content: "Hello world" }
@@ -102,7 +105,7 @@ describe("Phase 1: Core Message Handling", () => {
       );
     }, 30000);
 
-    test("handles multi-turn conversation with messages", async () => {
+    testWithApiKey("handles multi-turn conversation with messages", async () => {
       // Given: Complete conversation history
       const messages: ModelMessage[] = [
         { role: "user", content: "What is 2+2?" },
@@ -159,7 +162,7 @@ describe("Phase 1: Core Message Handling", () => {
   });
 
   describe("Prompt Parameter (Backward Compatibility)", () => {
-    test("converts prompt to user message for backward compatibility", async () => {
+    testWithApiKey("converts prompt to user message for backward compatibility", async () => {
       // Given: Only prompt parameter is provided (old way)
       const prompt = "Hello from prompt";
 
@@ -181,7 +184,7 @@ describe("Phase 1: Core Message Handling", () => {
       );
     }, 30000);
 
-    test("works with prompt and maxSteps", async () => {
+    testWithApiKey("works with prompt and maxSteps", async () => {
       // Given: Prompt with additional options
       const prompt = "Create a todo item";
 
@@ -211,7 +214,7 @@ describe("Phase 1: Core Message Handling", () => {
   });
 
   describe("Priority Logic", () => {
-    test("messages takes precedence over prompt when both provided", async () => {
+    testWithApiKey("messages takes precedence over prompt when both provided", async () => {
       // Given: Both prompt and messages provided
       const prompt = "This should be ignored";
       const messages: ModelMessage[] = [
@@ -267,7 +270,7 @@ describe("Phase 1: Core Message Handling", () => {
   });
 
   describe("Checkpoint Integration", () => {
-    test("uses checkpoint messages when no prompt or messages provided", async () => {
+    testWithApiKey("uses checkpoint messages when no prompt or messages provided", async () => {
       // Given: Existing checkpoint with messages
       const threadId = `test-checkpoint-${Date.now()}`;
       const checkpointMessages = [
@@ -297,7 +300,7 @@ describe("Phase 1: Core Message Handling", () => {
       expect(doneEvent.messages.length).toBeGreaterThan(0);
     }, 45000);
 
-    test("explicit messages replace checkpoint history", async () => {
+    testWithApiKey("explicit messages replace checkpoint history", async () => {
       // Given: Existing checkpoint and new explicit messages
       const threadId = `test-replace-${Date.now()}`;
 
@@ -382,7 +385,7 @@ describe("Phase 1: Core Message Handling", () => {
   });
 
   describe("Type Safety", () => {
-    test("accepts proper ModelMessage array type", async () => {
+    testWithApiKey("accepts proper ModelMessage array type", async () => {
       // Given: Properly typed ModelMessage array
       const messages: ModelMessage[] = [
         { role: "user", content: "Typed message" }
@@ -400,7 +403,7 @@ describe("Phase 1: Core Message Handling", () => {
       }).not.toThrow();
     }, 30000);
 
-    test("handles messages with complex content structures", async () => {
+    testWithApiKey("handles messages with complex content structures", async () => {
       // Given: Messages with potential complex content (future-proofing)
       const messages: ModelMessage[] = [
         { role: "user", content: "Complex message test" }
@@ -446,7 +449,7 @@ describe("Phase 2: Integration & Event Handling", () => {
     });
   });
 
-  test("maintains event streaming consistency with messages", async () => {
+  testWithApiKey("maintains event streaming consistency with messages", async () => {
     // Given: Messages parameter with event tracking
     const messages: ModelMessage[] = [
       { role: "user", content: "Generate todos" }
@@ -481,7 +484,7 @@ describe("Phase 2: Integration & Event Handling", () => {
     expect(textGenerated).toBe(true);
   }, 30000);
 
-  test("preserves thread ID consistency with messages", async () => {
+  testWithApiKey("preserves thread ID consistency with messages", async () => {
     // Given: Specific thread ID
     const threadId = `test-thread-${Date.now()}`;
     const messages: ModelMessage[] = [
@@ -504,9 +507,7 @@ describe("Phase 2: Integration & Event Handling", () => {
     expect(checkpointThreadId).toBe(threadId);
   }, 30000);
 
-  // Skip tests without API key
-const testWithApiKey = hasApiKey ? test : test.skip;
-testWithApiKey("handles large conversation contexts efficiently", async () => {
+  testWithApiKey("handles large conversation contexts efficiently", async () => {
     // Given: Large conversation history
     const messages: ModelMessage[] = [];
     for (let i = 0; i < 10; i++) {
@@ -560,7 +561,7 @@ describe("Phase 3: Migration & Deprecation", () => {
     });
   });
 
-  test("maintains backward compatibility for existing prompt usage", async () => {
+  testWithApiKey("maintains backward compatibility for existing prompt usage", async () => {
     // Given: Legacy code using prompt parameter
     const prompt = "Legacy prompt usage";
 
@@ -605,7 +606,7 @@ describe("Phase 3: Migration & Deprecation", () => {
     );
   }, 30000);
 
-  test("enables smooth migration from prompt to messages", async () => {
+  testWithApiKey("enables smooth migration from prompt to messages", async () => {
     // Given: Equivalent prompt and messages
     const prompt = "Migration test";
     const messages: ModelMessage[] = [
@@ -647,7 +648,7 @@ describe("Phase 3: Migration & Deprecation", () => {
     );
   }, 45000);
 
-  test("supports gradual migration with mixed usage", async () => {
+  testWithApiKey("supports gradual migration with mixed usage", async () => {
     // Given: Different migration scenarios
     const scenarios = [
       { prompt: "Scenario 1: prompt only" },
