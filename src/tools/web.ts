@@ -98,7 +98,7 @@ IMPORTANT AGENT INSTRUCTIONS:
 /**
  * Create the web_search tool.
  */
-function createWebSearchTool(
+export function createWebSearchTool(
   state: DeepAgentState,
   options: {
     backend?: BackendProtocol | BackendFactory;
@@ -218,7 +218,7 @@ Returns structured response with status code, headers, and parsed content (JSON 
 /**
  * Create the http_request tool.
  */
-function createHttpRequestTool(
+export function createHttpRequestTool(
   state: DeepAgentState,
   options: {
     backend?: BackendProtocol | BackendFactory;
@@ -382,7 +382,7 @@ IMPORTANT AGENT INSTRUCTIONS:
 /**
  * Create the fetch_url tool.
  */
-function createFetchUrlTool(
+export function createFetchUrlTool(
   state: DeepAgentState,
   options: {
     backend?: BackendProtocol | BackendFactory;
@@ -578,3 +578,15 @@ export function createWebTools(
 // ============================================================================
 
 export { htmlToMarkdown };
+
+// ============================================================================
+// Individual Tool References
+// ============================================================================
+
+/**
+ * Individual builtin tool references for selective subagent configuration.
+ * These are references to the creator functions, not instances.
+ */
+export const web_search = createWebSearchTool;
+export const http_request = createHttpRequestTool;
+export const fetch_url = createFetchUrlTool;

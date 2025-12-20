@@ -12,6 +12,8 @@ import type {
   EventCallback,
   InterruptOnConfig,
   CreateDeepAgentParams,
+  BuiltinToolCreator,
+  SubagentToolConfig,
 } from "../types";
 import { applyInterruptConfig } from "../utils/approval";
 import {
@@ -24,6 +26,165 @@ import {
 } from "../prompts";
 import { createTodosTool } from "./todos";
 import { createFilesystemTools } from "./filesystem";
+import {
+  createWebSearchTool,
+  createHttpRequestTool,
+  createFetchUrlTool,
+} from "./web";
+import {
+  createLsTool,
+  createReadFileTool,
+  createWriteFileTool,
+  createEditFileTool,
+  createGlobTool,
+  createGrepTool,
+} from "./filesystem";
+import { createExecuteTool } from "./execute";
+
+// ============================================================================
+// Helper Functions for Builtin Tool Instantiation
+// ============================================================================
+
+/**
+ * Check if a value is a builtin tool creator function.
+ */
+function isBuiltinToolCreator(value: any): value is BuiltinToolCreator {
+  return typeof value === "function" && (
+    value === createWebSearchTool ||
+    value === createHttpRequestTool ||
+    value === createFetchUrlTool ||
+    value === createLsTool ||
+    value === createReadFileTool ||
+    value === createWriteFileTool ||
+    value === createEditFileTool ||
+    value === createGlobTool ||
+    value === createGrepTool ||
+    value === createTodosTool ||
+    value === createExecuteTool
+  );
+}
+
+/**
+ * Instantiate a builtin tool creator with the given context.
+ */
+function instantiateBuiltinTool(
+  creator: BuiltinToolCreator,
+  state: DeepAgentState,
+  options: {
+    backend?: BackendProtocol | BackendFactory;
+    onEvent?: EventCallback;
+    toolResultEvictionLimit?: number;
+  }
+): ToolSet {
+  const { backend, onEvent, toolResultEvictionLimit } = options;
+
+  // Web tools - require API key and timeout defaults
+  const tavilyApiKey = process.env.TAVILY_API_KEY || "";
+  const defaultTimeout = 30;
+
+  if (creator === createWebSearchTool) {
+    if (!tavilyApiKey) {
+      console.warn("web_search tool requested but TAVILY_API_KEY not set");
+      return {};
+    }
+    return {
+      web_search: createWebSearchTool(state, { backend, onEvent, toolResultEvictionLimit, tavilyApiKey }),
+    };
+  }
+  if (creator === createHttpRequestTool) {
+    return {
+      http_request: createHttpRequestTool(state, { backend, onEvent, toolResultEvictionLimit, defaultTimeout }),
+    };
+  }
+  if (creator === createFetchUrlTool) {
+    return {
+      fetch_url: createFetchUrlTool(state, { backend, onEvent, toolResultEvictionLimit, defaultTimeout }),
+    };
+  }
+
+  // Filesystem tools
+  if (creator === createLsTool) {
+    return {
+      ls: createLsTool(state, backend!, onEvent),
+    };
+  }
+  if (creator === createReadFileTool) {
+    return {
+      read_file: createReadFileTool(state, backend!, toolResultEvictionLimit, onEvent),
+    };
+  }
+  if (creator === createWriteFileTool) {
+    return {
+      write_file: createWriteFileTool(state, backend!, onEvent),
+    };
+  }
+  if (creator === createEditFileTool) {
+    return {
+      edit_file: createEditFileTool(state, backend!, onEvent),
+    };
+  }
+  if (creator === createGlobTool) {
+    return {
+      glob: createGlobTool(state, backend!, onEvent),
+    };
+  }
+  if (creator === createGrepTool) {
+    return {
+      grep: createGrepTool(state, backend!, toolResultEvictionLimit, onEvent),
+    };
+  }
+
+  // Utility tools
+  if (creator === createTodosTool) {
+    return {
+      write_todos: createTodosTool(state, onEvent),
+    };
+  }
+  if (creator === createExecuteTool) {
+    // Execute tool requires special handling - needs a sandbox backend
+    throw new Error("execute tool cannot be used via selective tools - it requires a SandboxBackendProtocol");
+  }
+
+  throw new Error(`Unknown builtin tool creator: ${creator}`);
+}
+
+/**
+ * Process subagent tool configuration (array or ToolSet) into a ToolSet.
+ */
+function processSubagentTools(
+  toolConfig: ToolSet | SubagentToolConfig[] | undefined,
+  state: DeepAgentState,
+  options: {
+    backend?: BackendProtocol | BackendFactory;
+    onEvent?: EventCallback;
+    toolResultEvictionLimit?: number;
+  }
+): ToolSet {
+  if (!toolConfig) {
+    return {};
+  }
+
+  // If it's already a ToolSet object, return as-is
+  if (!Array.isArray(toolConfig)) {
+    return toolConfig;
+  }
+
+  // Process array of SubagentToolConfig items
+  let result: ToolSet = {};
+  for (const item of toolConfig) {
+    if (isBuiltinToolCreator(item)) {
+      // Instantiate builtin tool creator
+      const instantiated = instantiateBuiltinTool(item, state, options);
+      result = { ...result, ...instantiated };
+    } else if (typeof item === "object" && item !== null) {
+      // Assume it's a ToolSet object
+      result = { ...result, ...item };
+    }
+    // Silently skip invalid items
+  }
+
+  return result;
+}
 
 /**
  * Options for creating the subagent tool.
@@ -83,12 +244,12 @@ export function createSubagentTool(
     parentAdvancedOptions,
   } = options;
 
-  // Build subagent registry
+  // Build subagent registry (store raw tool config, process during execution)
   const subagentRegistry: Record<
     string,
     {
       systemPrompt: string;
-      tools: ToolSet;
+      toolConfig: ToolSet | SubagentToolConfig[] | undefined;
       model: LanguageModel;
       output?: { schema: z.ZodType<any>; description?: string };
     }
@@ -99,7 +260,7 @@ export function createSubagentTool(
   if (includeGeneralPurposeAgent) {
     subagentRegistry["general-purpose"] = {
       systemPrompt: buildSubagentSystemPrompt(DEFAULT_SUBAGENT_PROMPT),
-      tools: defaultTools,
+      toolConfig: defaultTools,
       model: defaultModel,
     };
     subagentDescriptions.push(
@@ -107,11 +268,11 @@ export function createSubagentTool(
     );
   }
 
-  // Add custom subagents
+  // Add custom subagents (store raw tool config)
   for (const subagent of subagents) {
     subagentRegistry[subagent.name] = {
       systemPrompt: buildSubagentSystemPrompt(subagent.systemPrompt),
-      tools: subagent.tools || defaultTools,
+      toolConfig: subagent.tools || defaultTools,
       model: subagent.model || defaultModel,
       output: subagent.output,
     };
@@ -174,14 +335,23 @@ export function createSubagentTool(
         files: state.files, // Share files with parent
       };
 
-      // Build tools for subagent (pass event callback for file events)
+      // Process subagent tool configuration (handles both arrays and ToolSet objects)
+      const customTools = processSubagentTools(
+        subagentConfig.toolConfig,
+        subagentState,
+        { backend, onEvent }
+      );
+
+      // Build default tools (todos + filesystem) that all subagents get
       const todosTool = createTodosTool(subagentState, onEvent);
       const filesystemTools = createFilesystemTools(subagentState, backend, onEvent);
 
+      // Combine default tools with custom tools
+      // Custom tools come last so they can override defaults if needed
       let allTools: ToolSet = {
         write_todos: todosTool,
         ...filesystemTools,
-        ...subagentConfig.tools,
+        ...customTools,
       };
 
       // Apply interruptOn config - use subagent's own config if provided, otherwise parent's
@@ -211,7 +381,30 @@ export function createSubagentTool(
 
         const subagentAgent = new ToolLoopAgent(subagentSettings);
 
-        const result = await subagentAgent.generate({ prompt: description });
+        // Use generate to capture subagent tool calls
+        let subagentStepCount = 0;
+
+        const result = await subagentAgent.generate({
+          prompt: description,
+          // Pass a callback to capture steps
+          onStepFinish: async ({ toolCalls, toolResults }) => {
+            // Emit subagent step event with tool calls
+            if (onEvent && toolCalls && toolCalls.length > 0) {
+              // Map tool calls with their results
+              const toolCallsWithResults = toolCalls.map((tc: any, index: number) => ({
+                toolName: tc.toolName,
+                args: tc.args,
+                result: toolResults[index],
+              }));
+
+              onEvent({
+                type: "subagent-step",
+                stepIndex: subagentStepCount++,
+                toolCalls: toolCallsWithResults,
+              });
+            }
+          },
+        });
 
         // Merge any file changes back to parent state
         state.files = { ...state.files, ...subagentState.files };

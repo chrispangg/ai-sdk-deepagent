@@ -91,3 +91,13 @@ When merge=false, the new todos replace all existing todos.`,
     },
   });
 }
+
+// ============================================================================
+// Individual Tool Reference
+// ============================================================================
+
+/**
+ * Individual builtin tool reference for selective subagent configuration.
+ * This is a reference to the creator function, not an instance.
+ */
+export const write_todos = createTodosTool;

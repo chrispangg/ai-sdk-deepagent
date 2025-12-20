@@ -35,6 +35,17 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
   - Works alongside all existing features
   - Non-breaking optional parameter
   - Supports subagent structured output delegation
+- [x] **Fix `options.messages` Implementation** ⚠️ **[BUG]**
+  - **Why**: `DeepAgentOptions.messages` is defined in types but NOT used in implementation; library only supports checkpoint-based persistence (threadId + checkpointer)
+  - **Impact**: Users expect to pass conversation history via `messages` parameter (standard AI SDK pattern), but it's silently ignored
+  - **Effort**: 1 day, add message handling to agent initialization
+  - **Workaround**: Manually prepend message history to prompt or use checkpointer
+  - **Note**: Should support both patterns: explicit `messages` array AND checkpoint-based persistence
+- [x] **ToolLoopAgent Constructor Passthrough**
+  - **Why**: Enable full AI SDK v6 ToolLoopAgent features (custom stopWhen, maxRetries, etc.) while keeping DeepAgent harness
+  - **Impact**: Better flexibility for advanced users, maintains AI SDK compatibility
+  - **Effort**: 1-2 days, add passthrough options to DeepAgentOptions
+  - **Note**: Should preserve DeepAgent defaults (systemPrompt, tools) but allow overrides
 
 ---
 
@@ -42,20 +53,13 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 
 ### Critical
 
-- [ ] **Fix `options.messages` Implementation** ⚠️ **[BUG]**
-  - **Why**: `DeepAgentOptions.messages` is defined in types but NOT used in implementation; library only supports checkpoint-based persistence (threadId + checkpointer)
-  - **Impact**: Users expect to pass conversation history via `messages` parameter (standard AI SDK pattern), but it's silently ignored
-  - **Effort**: 1 day, add message handling to agent initialization
-  - **Workaround**: Manually prepend message history to prompt or use checkpointer
-  - **Note**: Should support both patterns: explicit `messages` array AND checkpoint-based persistence
+- [ ] **Provider Options Passthrough** - Support AI SDK provider-specific options
+  - **Why**: Enable provider-specific features (e.g., Anthropic's thinking mode, OpenAI's reasoning effort, etc.) without hardcoding in DeepAgent
+  - **Impact**: Better flexibility for advanced users, maintains compatibility with AI SDK provider features
+  - **Effort**: 1 day, add `providerOptions` parameter to `CreateDeepAgentParams` and pass through to ToolLoopAgent
+  - **Note**: Should work alongside existing `generationOptions` and `loopControl` passthrough
 
 ### High Priority
-
-- [ ] **ToolLoopAgent Constructor Passthrough** [in_progress]
-  - **Why**: Enable full AI SDK v6 ToolLoopAgent features (custom stopWhen, maxRetries, etc.) while keeping DeepAgent harness
-  - **Impact**: Better flexibility for advanced users, maintains AI SDK compatibility
-  - **Effort**: 1-2 days, add passthrough options to DeepAgentOptions
-  - **Note**: Should preserve DeepAgent defaults (systemPrompt, tools) but allow overrides
 
 - [ ] **Subagent Web Tools Access** ⚠️ **[BUG]**
   - **Why**: Subagents spawned via `task` tool don't inherit web tools (`web_search`, `http_request`, `fetch_url`), limiting their capabilities

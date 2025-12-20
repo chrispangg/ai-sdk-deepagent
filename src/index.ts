@@ -97,6 +97,28 @@ export {
   createWebTools,
   htmlToMarkdown,
   type CreateWebToolsOptions,
+  // Individual tool creator functions
+  createLsTool,
+  createReadFileTool,
+  createWriteFileTool,
+  createEditFileTool,
+  createGlobTool,
+  createGrepTool,
+  createWebSearchTool,
+  createHttpRequestTool,
+  createFetchUrlTool,
+  // Individual builtin tool references (for selective subagent configuration)
+  web_search,
+  http_request,
+  fetch_url,
+  ls,
+  read_file,
+  write_file,
+  edit_file,
+  glob,
+  grep,
+  write_todos,
+  execute,
 } from "./tools/index";
 
 // Prompts (for customization)

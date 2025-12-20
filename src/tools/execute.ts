@@ -155,3 +155,13 @@ export function createExecuteToolFromBackend(backend: SandboxBackendProtocol) {
   return createExecuteTool({ backend });
 }
 
+// ============================================================================
+// Individual Tool Reference
+// ============================================================================
+
+/**
+ * Individual builtin tool reference for selective subagent configuration.
+ * This is a reference to the creator function, not an instance.
+ */
+export const execute = createExecuteTool;
+

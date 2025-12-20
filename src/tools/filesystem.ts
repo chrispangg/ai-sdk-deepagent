@@ -44,7 +44,7 @@ function getBackend(
 /**
  * Create the ls tool.
  */
-function createLsTool(
+export function createLsTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   onEvent?: EventCallback
@@ -91,7 +91,7 @@ function createLsTool(
 /**
  * Create the read_file tool.
  */
-function createReadFileTool(
+export function createReadFileTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   evictionLimit?: number,
@@ -144,7 +144,7 @@ function createReadFileTool(
 /**
  * Create the write_file tool.
  */
-function createWriteFileTool(
+export function createWriteFileTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   onEvent?: EventCallback
@@ -189,7 +189,7 @@ function createWriteFileTool(
 /**
  * Create the edit_file tool.
  */
-function createEditFileTool(
+export function createEditFileTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   onEvent?: EventCallback
@@ -237,7 +237,7 @@ function createEditFileTool(
 /**
  * Create the glob tool.
  */
-function createGlobTool(
+export function createGlobTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   onEvent?: EventCallback
@@ -276,7 +276,7 @@ function createGlobTool(
 /**
  * Create the grep tool.
  */
-function createGrepTool(
+export function createGrepTool(
   state: DeepAgentState,
   backend: BackendProtocol | BackendFactory,
   evictionLimit?: number,
@@ -411,3 +411,18 @@ export function createFilesystemTools(
     grep: createGrepTool(state, resolvedBackend, evictionLimit, eventCallback),
   };
 }
+
+// ============================================================================
+// Individual Tool References
+// ============================================================================
+
+/**
+ * Individual builtin tool references for selective subagent configuration.
+ * These are references to the creator functions, not instances.
+ */
+export const ls = createLsTool;
+export const read_file = createReadFileTool;
+export const write_file = createWriteFileTool;
+export const edit_file = createEditFileTool;
+export const glob = createGlobTool;
+export const grep = createGrepTool;

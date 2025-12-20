@@ -375,6 +375,38 @@ export interface DeepAgentState {
   files: Record<string, FileData>;
 }
 
+// ============================================================================
+// Builtin Tool Creator Types
+// ============================================================================
+
+/**
+ * Type for builtin tool creator functions.
+ * These are functions that create tool instances when given state and options.
+ */
+export type BuiltinToolCreator =
+  // Web tools
+  | typeof import("./tools/web").createWebSearchTool
+  | typeof import("./tools/web").createHttpRequestTool
+  | typeof import("./tools/web").createFetchUrlTool
+  // Filesystem tools
+  | typeof import("./tools/filesystem").createLsTool
+  | typeof import("./tools/filesystem").createReadFileTool
+  | typeof import("./tools/filesystem").createWriteFileTool
+  | typeof import("./tools/filesystem").createEditFileTool
+  | typeof import("./tools/filesystem").createGlobTool
+  | typeof import("./tools/filesystem").createGrepTool
+  // Utility tools
+  | typeof import("./tools/todos").createTodosTool
+  | typeof import("./tools/execute").createExecuteTool;
+
+/**
+ * Union type for subagent tool configuration.
+ * Supports:
+ * - ToolSet objects (existing behavior)
+ * - Individual builtin tool creator functions (new behavior)
+ */
+export type SubagentToolConfig = ToolSet | BuiltinToolCreator;
+
 /**
  * SubAgent specification for task delegation.
  *
@@ -401,7 +433,7 @@ export interface DeepAgentState {
  * };
  * ```
  *
- * @example Subagent with custom tools
+ * @example Subagent with custom tools (legacy ToolSet format)
  * ```typescript
  * const apiAgent: SubAgent = {
  *   name: 'api-agent',
@@ -410,6 +442,18 @@ export interface DeepAgentState {
  *   tools: {
  *     fetch_api: myApiTool,
  *   },
+ * };
+ * ```
+ *
+ * @example Subagent with selective builtin tools (new array format)
+ * ```typescript
+ * import { web_search, read_file, write_todos } from 'ai-sdk-deep-agent';
+ *
+ * const researchAgent: SubAgent = {
+ *   name: 'research-agent',
+ *   description: 'Web research specialist',
+ *   systemPrompt: 'You research topics using web tools...',
+ *   tools: [web_search, read_file, write_todos], // Only specific builtin tools
  * };
  * ```
  */
@@ -429,11 +473,15 @@ export interface SubAgent {
    * This is separate from the main agent's system prompt.
    */
   systemPrompt: string;
-  /** 
+  /**
    * Optional custom tools available only to this subagent.
+   * Supports:
+   * - ToolSet object (legacy format): `{ my_tool: createMyTool() }`
+   * - Array of SubagentToolConfig (new format): `[web_search, read_file, { custom: myTool }]`
+   *
    * If not provided, the subagent uses the same tools as the main agent.
    */
-  tools?: ToolSet;
+  tools?: ToolSet | SubagentToolConfig[];
   /** 
    * Optional model override for this subagent.
    * If not provided, the subagent uses the same model as the main agent.
@@ -1430,6 +1478,19 @@ export interface SubagentFinishEvent {
 }
 
 /**
+ * Event emitted when a subagent completes a step with tool calls.
+ */
+export interface SubagentStepEvent {
+  type: "subagent-step";
+  stepIndex: number;
+  toolCalls: Array<{
+    toolName: string;
+    args: any;
+    result: any;
+  }>;
+}
+
+/**
  * Event emitted for a segment of text (used for CLI display).
  * Text segments are flushed before tool events to maintain chronological order.
  */
@@ -1544,6 +1605,7 @@ export type DeepAgentEvent =
   | FetchUrlFinishEvent
   | SubagentStartEvent
   | SubagentFinishEvent
+  | SubagentStepEvent
   | TextSegmentEvent
   | UserMessageEvent
   | ApprovalRequestedEvent
