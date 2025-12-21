@@ -77,6 +77,29 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
   - **Impact**: Significantly improved maintainability, testability, and code readability
   - **All Tests**: 227/227 passing (100%), TypeScript compilation successful
   - **Breaking Changes**: None - fully backward compatible
+- [x] **Remove `as any` Type Assertions** - Eliminate unsafe type casts throughout codebase
+  - **Why**: `as any` bypasses TypeScript's type safety, hiding potential bugs and reducing code quality
+  - **Impact**: Better type safety, fewer runtime errors, improved developer experience
+  - **Effort**: 1-2 days, audit all files and replace with proper types/generics
+  - **Note**: Focus on `src/` directory first, then examples and tests
+  - **Implementation**: Completed 2025-12-21
+    - Fixed 1 instance in `src/utils/patch-tool-calls.ts` - proper AI SDK ToolResultPart structure
+    - Fixed 6 instances in `examples/with-structured-output.ts` - added type-safe utilities
+    - Created `src/types/structured-output.ts` with 4 type-safe utility functions
+    - All 227 tests pass, zero regressions, TypeScript compilation clean
+    - Test files left unchanged as requested (86 instances remain in tests)
+- [x] **Error Handling Standardisation** - Consistent error patterns across modules
+  - **Why**: Mix of throwing vs returning error objects creates inconsistency
+  - **Impact**: Predictable error handling, better debugging experience
+  - **Approach**:
+    - Define error type hierarchy (e.g., `DeepAgentError`, `BackendError`, `ToolError`)
+    - Standardise on throwing for exceptional cases, returning `Result<T, E>` for expected failures
+    - Add error codes for programmatic handling
+  - **Effort**: 2-3 days, cross-cutting refactor
+  - **Implementation**: Completed as part of Architectural Refactoring (Phase 2, 2025-12-21)
+    - Added `success: boolean` discriminant to `WriteResult` and `EditResult` interfaces
+    - All 6 backend implementations consistently return standardized results
+    - Maintains backward compatibility with existing error checking patterns
 
 ---
 
@@ -91,12 +114,6 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
   - **Impact**: Better performance for I/O-heavy operations
   - **Effort**: 2-3 days, requires refactoring all backends + tests
   - **Note**: Schedule for next major version (v0.2.0 or v1.0.0)
-
-- [ ] **Remove `as any` Type Assertions** - Eliminate unsafe type casts throughout codebase
-  - **Why**: `as any` bypasses TypeScript's type safety, hiding potential bugs and reducing code quality
-  - **Impact**: Better type safety, fewer runtime errors, improved developer experience
-  - **Effort**: 1-2 days, audit all files and replace with proper types/generics
-  - **Note**: Focus on `src/` directory first, then examples and tests
 
 ### Medium Priority
 
@@ -143,28 +160,10 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 
 ### Medium Impact (Future Enhancements)
 
-- [ ] **Type System Cleanup** - Remove all `as any` type assertions and fix wrapper/adapter pattern type handling
-  - **Why**: `as any` bypasses TypeScript's type safety; wrapper pattern requires casting (e.g., `model as LanguageModelV3`)
-  - **Impact**: Better compile-time guarantees, fewer runtime errors, type-safe middleware
-  - **Approach**:
-    - Audit all `as any` and `as Type` assertions in `src/`
-    - Add proper generics where type narrowing is needed
-    - Fix `wrapLanguageModel` integration to avoid casting
-  - **Note**: Already tracked in High Priority "Remove `as any` Type Assertions"
-
 - [ ] **Configuration Builder Pattern** - Simplify complex CreateDeepAgentParams
   - **Why**: 17+ optional properties create overwhelming configuration surface
   - **Impact**: Better developer experience, clearer API
   - **Approach**: Fluent builder pattern with logical grouping
-
-- [ ] **Error Handling Standardisation** - Consistent error patterns across modules
-  - **Why**: Mix of throwing vs returning error objects creates inconsistency
-  - **Impact**: Predictable error handling, better debugging experience
-  - **Approach**:
-    - Define error type hierarchy (e.g., `DeepAgentError`, `BackendError`, `ToolError`)
-    - Standardise on throwing for exceptional cases, returning `Result<T, E>` for expected failures
-    - Add error codes for programmatic handling
-  - **Effort**: 2-3 days, cross-cutting refactor
 
 - [ ] **Consistent Naming Conventions** - Standardise factory function names
   - **Why**: Mix of `createXTool` vs `createX` reduces predictability
@@ -187,41 +186,3 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - Reference JS implementation: `.refs/deepagentsjs/`
 - Reference Python implementation: `.refs/deepagents/`
 - AI SDK v6 primitive: `ToolLoopAgent` from `ai` package
-
-## Priority Rationale (Updated 2025-12-21)
-
-**Completed Core Features (as of 2025-12-21):**
-
-✅ **Middleware Architecture** - Implemented using AI SDK v6's `wrapLanguageModel`; enables logging, caching, RAG, and guardrails
-✅ **Skills System** - Implemented with YAML frontmatter parsing and progressive disclosure pattern
-✅ **Web Tools** - Implemented with Tavily search, HTTP client, and web scraping capabilities
-✅ **Provider Options Passthrough** - Support for provider-specific options (thinking mode, reasoning effort, etc.)
-✅ **Architectural Refactoring** - Comprehensive refactoring completed with all three phases:
-- Type modularization (4 focused modules + re-exports)
-- Error handling standardisation (success discriminants)
-- Function decomposition (49% reduction in streamWithEvents size)
-
-**Architectural Health Assessment (2025-12-21):**
-
-Completed comprehensive codebase analysis (see `docs/tickets/012_architectural_health_assessment/research.md`). Key findings:
-
-- Layered architecture is sound with good separation of concerns
-- Event system complexity identified as scalability concern (Hybrid Event Bus pattern recommended)
-- Skills system should align with [agentskills.io](https://agentskills.io/specification) open standard
-- ✅ types.ts modularization completed - split into 4 domain-focused modules
-- ✅ streamWithEvents decomposition completed - reduced from 348 to 178 lines
-
-**Current Priority:**
-
-1. **Async Backend Methods** (Breaking, deferred to v0.2.0/v1.0.0) - Full async variants for better I/O performance
-2. **Type System Cleanup** - Remove `as any` assertions and fix wrapper pattern type handling
-
-**Future Architectural Work (Deferred):**
-
-- **Event System Refactor**: Implement Event Bus pattern for scalability (when complex multi-agent interactions needed)
-- **Enhanced Skills Ecosystem**: Full agentskills.io spec compliance (when interoperability required)
-
-**Deferred Features:**
-
-- **Cloud Sandboxes**: Low demand, implement when users request specific providers
-- **Custom Tool Descriptions**: Not needed with current Zod-based approach
