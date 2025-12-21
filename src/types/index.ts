@@ -80,3 +80,15 @@ export type {
   SubagentToolConfig,
   SubAgent,
 } from "./subagent.js";
+
+// Structured output types
+export type {
+  StructuredAgentResult,
+} from "./structured-output.js";
+
+export {
+  hasStructuredOutput,
+  eventHasStructuredOutput,
+  getStructuredOutput,
+  getEventOutput,
+} from "./structured-output.js";

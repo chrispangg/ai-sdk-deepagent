@@ -168,5 +168,9 @@ export type { SkillMetadata, SkillLoadOptions } from "./skills/index";
 export { createAgentMemoryMiddleware } from "./middleware/agent-memory";
 export type { AgentMemoryOptions } from "./types";
 
+// Structured Output Utilities
+export { getStructuredOutput, getEventOutput, hasStructuredOutput, eventHasStructuredOutput } from "./types/structured-output";
+export type { StructuredAgentResult } from "./types/structured-output";
+
 // Project Detection Utilities
 export { findGitRoot } from "./utils/project-detection";

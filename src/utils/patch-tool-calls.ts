@@ -86,17 +86,20 @@ function isToolResultFor(message: ModelMessage, toolCallId: string): boolean {
  */
 function createCancelledToolResult(
   toolCallId: string,
-  _toolName: string // Not used but kept for API compatibility
+  toolName: string
 ): ModelMessage {
   const message: ModelMessage = {
     role: "tool",
     content: [
       {
-        type: "tool-result",
+        type: "tool-result" as const,
         toolCallId,
-        // TODO: Fix the property name based on AI SDK requirements
-        // result: `Tool call ${toolName} with id ${toolCallId} was cancelled - another message came in before it could be completed.`,
-      } as any,
+        toolName,
+        output: {
+          type: "text" as const,
+          value: `Tool call ${toolName} with id ${toolCallId} was cancelled - another message came in before it could be completed.`,
+        },
+      },
     ],
   };
   return message;

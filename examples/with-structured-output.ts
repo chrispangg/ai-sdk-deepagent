@@ -8,7 +8,7 @@
  * Requires: OPENAI_API_KEY environment variable in .env file
  */
 
-import { createDeepAgent } from "../src/index";
+import { createDeepAgent, getStructuredOutput, getEventOutput } from "../src/index";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
@@ -29,6 +29,9 @@ const sentimentSchema = z.object({
   summary: z.string(),
 });
 
+// Type inference helpers
+type SentimentResult = z.infer<typeof sentimentSchema>;
+
 const sentimentAgent = createDeepAgent({
   model: openai("gpt-5-mini"),
   output: {
@@ -42,8 +45,8 @@ const sentimentResult = await sentimentAgent.generate({
 });
 
 console.log("Text response:", sentimentResult.text);
-console.log("Structured output:", (sentimentResult as any).output);
-console.log("Type-safe access:", (sentimentResult as any).output?.sentiment); // TypeScript knows this is 'positive' | 'negative' | 'neutral'
+console.log("Structured output:", getStructuredOutput<SentimentResult>(sentimentResult));
+console.log("Type-safe access:", getStructuredOutput<SentimentResult>(sentimentResult)?.sentiment); // TypeScript knows this is 'positive' | 'negative' | 'neutral'
 
 // Example 2: Complex Nested Schema
 console.log("\n=== Example 2: Research with Complex Schema ===\n");
@@ -55,6 +58,8 @@ const researchSchema = z.object({
   topics: z.array(z.string()).describe("Main topics covered"),
   reliability: z.enum(["high", "medium", "low"]).describe("Reliability of findings"),
 });
+
+type ResearchResult = z.infer<typeof researchSchema>;
 
 const researchAgent = createDeepAgent({
   model: openai("gpt-5-mini"),
@@ -70,7 +75,7 @@ const researchResult = await researchAgent.generate({
 });
 
 console.log("Structured research output:");
-console.log(JSON.stringify((researchResult as any).output, null, 2));
+console.log(JSON.stringify(getStructuredOutput<ResearchResult>(researchResult), null, 2));
 
 // Example 3: Using with Streaming
 console.log("\n=== Example 3: Streaming with Structured Output ===\n");
@@ -85,7 +90,7 @@ for await (const event of researchAgent.streamWithEvents({
 
   if (event.type === "done") {
     console.log("\n\nStructured output from stream:");
-    const output = event.output as any;
+    const output = getEventOutput<ResearchResult>(event);
     console.log("Summary:", output?.summary);
     console.log("Key points:", output?.keyPoints);
     console.log("Topics:", output?.topics);
@@ -101,7 +106,7 @@ const loggingMiddleware = {
   wrapGenerate: async ({ doGenerate, params }: any) => {
     console.log("[Logging] Generate called with prompt:", params.prompt?.[0]?.content?.substring(0, 50));
     const result = await doGenerate();
-    console.log("[Logging] Output schema:", (result as any).output ? "present" : "absent");
+    console.log("[Logging] Output schema:", getStructuredOutput<SentimentResult>(result) ? "present" : "absent");
     return result;
   },
 };
@@ -118,6 +123,6 @@ const middlewareResult = await agentWithMiddleware.generate({
   prompt: "Analyze: This is great!",
 });
 
-console.log("Result with middleware:", (middlewareResult as any).output);
+console.log("Result with middleware:", getStructuredOutput<SentimentResult>(middlewareResult));
 
 console.log("\n=== All Examples Complete ===");
