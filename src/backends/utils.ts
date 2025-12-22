@@ -5,13 +5,18 @@
 import micromatch from "micromatch";
 import { basename } from "path";
 import type { FileData, GrepMatch } from "../types";
+import { SYSTEM_REMINDER_FILE_EMPTY, INVALID_REGEX } from "../constants/errors";
+import {
+  MAX_LINE_LENGTH,
+  LINE_NUMBER_WIDTH,
+  DEFAULT_EVICTION_TOKEN_LIMIT,
+} from "../constants/limits";
 
 // Constants
-export const EMPTY_CONTENT_WARNING =
-  "System reminder: File exists but has empty contents";
-export const MAX_LINE_LENGTH = 10000;
-export const LINE_NUMBER_WIDTH = 6;
-export const TOOL_RESULT_TOKEN_LIMIT = 20000;
+export const EMPTY_CONTENT_WARNING = SYSTEM_REMINDER_FILE_EMPTY;
+// Re-export from limits for backward compatibility
+export { MAX_LINE_LENGTH, LINE_NUMBER_WIDTH };
+export const TOOL_RESULT_TOKEN_LIMIT = DEFAULT_EVICTION_TOKEN_LIMIT;
 export const TRUNCATION_GUIDANCE =
   "... [results truncated, try being more specific with your parameters]";
 
@@ -244,7 +249,7 @@ export function grepMatchesFromFiles(
     regex = new RegExp(pattern);
   } catch (e: unknown) {
     const error = e as Error;
-    return `Invalid regex pattern: ${error.message}`;
+    return INVALID_REGEX(error.message);
   }
 
   let normalizedPath: string;

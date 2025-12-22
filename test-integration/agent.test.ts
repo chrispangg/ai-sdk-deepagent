@@ -12,14 +12,14 @@
 import { test, expect, describe, beforeEach, afterEach } from "bun:test";
 import { tool } from "ai";
 import { z } from "zod";
-import type { DeepAgentEvent, DeepAgentState } from "../src/types";
+import type { DeepAgentEvent, DeepAgentState } from "@/types.ts";
 
 // Check if we have API keys for testing
 const hasAnthropicAPI = !!process.env.ANTHROPIC_API_KEY;
 
 // Now import after mocking
-import { createDeepAgent } from "../src/agent";
-import { StateBackend } from "../src/backends/state";
+import { createDeepAgent } from "@/agent.ts";
+import { StateBackend } from "@/backends/state.ts";
 import { anthropic } from "@ai-sdk/anthropic";
 
 // ============================================================================

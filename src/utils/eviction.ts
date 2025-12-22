@@ -7,12 +7,13 @@
  */
 
 import type { BackendProtocol, BackendFactory, DeepAgentState } from "../types.js";
+import { DEFAULT_EVICTION_TOKEN_LIMIT as CENTRALIZED_EVICTION_LIMIT } from "../constants/limits.js";
 
 /**
  * Default token limit before evicting a tool result.
  * Approximately 20,000 tokens (~80KB of text).
  */
-export const DEFAULT_EVICTION_TOKEN_LIMIT = 20000;
+export const DEFAULT_EVICTION_TOKEN_LIMIT = CENTRALIZED_EVICTION_LIMIT;
 
 /**
  * Approximate characters per token (rough estimate).

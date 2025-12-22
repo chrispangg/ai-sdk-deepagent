@@ -1,5 +1,5 @@
 import { test, expect, beforeAll, afterAll } from "bun:test";
-import { parseSkillMetadata, listSkills } from "../src/skills/index.ts";
+import { parseSkillMetadata, listSkills } from "@/skills/index.ts";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";

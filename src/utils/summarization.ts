@@ -8,17 +8,21 @@
 import { generateText, type LanguageModel } from "ai";
 import type { ModelMessage } from "../types.js";
 import { estimateTokens } from "./eviction.js";
+import {
+  DEFAULT_SUMMARIZATION_THRESHOLD as CENTRALIZED_THRESHOLD,
+  DEFAULT_KEEP_MESSAGES as CENTRALIZED_KEEP,
+} from "../constants/limits.js";
 
 /**
  * Default token threshold before triggering summarization.
  * 170k tokens is a safe threshold for most models.
  */
-export const DEFAULT_SUMMARIZATION_THRESHOLD = 170000;
+export const DEFAULT_SUMMARIZATION_THRESHOLD = CENTRALIZED_THRESHOLD;
 
 /**
  * Default number of recent messages to keep intact.
  */
-export const DEFAULT_KEEP_MESSAGES = 6;
+export const DEFAULT_KEEP_MESSAGES = CENTRALIZED_KEEP;
 
 /**
  * Options for summarization.

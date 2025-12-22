@@ -2,8 +2,8 @@ import { test, expect, beforeEach, afterEach } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import os from "node:os";
-import { createAgentMemoryMiddleware } from "../../src/middleware/agent-memory.ts";
-import { createDeepAgent } from "../../src/agent.ts";
+import { createAgentMemoryMiddleware } from "@/middleware/agent-memory.ts";
+import { createDeepAgent } from "@/agent.ts";
 import { createAnthropic } from '@ai-sdk/anthropic';
 
 const anthropic = createAnthropic({

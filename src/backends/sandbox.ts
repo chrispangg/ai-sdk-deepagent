@@ -18,6 +18,12 @@ import type {
   SandboxBackendProtocol,
   WriteResult,
 } from "../types";
+import {
+  FILE_NOT_FOUND,
+  SYSTEM_REMINDER_FILE_EMPTY,
+  STRING_NOT_FOUND,
+} from "../constants/errors";
+import { DEFAULT_READ_LIMIT } from "../constants/limits";
 
 /**
  * Encode string to base64 for safe shell transmission.
@@ -128,9 +134,10 @@ try {
   async read(
     filePath: string,
     offset: number = 0,
-    limit: number = 2000
+    limit: number = DEFAULT_READ_LIMIT
   ): Promise<string> {
     const pathB64 = toBase64(filePath);
+    const emptyReminder = SYSTEM_REMINDER_FILE_EMPTY;
     const script = `
 const fs = require("fs");
 const filePath = Buffer.from("__PATH__", "base64").toString("utf-8");
@@ -144,7 +151,7 @@ if (!fs.existsSync(filePath)) {
 
 const stat = fs.statSync(filePath);
 if (stat.size === 0) {
-  console.log("System reminder: File exists but has empty contents");
+  console.log("${emptyReminder}");
   process.exit(0);
 }
 
@@ -167,7 +174,7 @@ for (let i = 0; i < selected.length; i++) {
 
     if (result.exitCode !== 0) {
       if (result.output.includes("Error: File not found")) {
-        return `Error: File '${filePath}' not found`;
+        return FILE_NOT_FOUND(filePath);
       }
       return result.output.trim();
     }
@@ -312,10 +319,10 @@ console.log(count);
     );
 
     if (result.exitCode === 1) {
-      return { success: false, error: `Error: File '${filePath}' not found` };
+      return { success: false, error: FILE_NOT_FOUND(filePath) };
     }
     if (result.exitCode === 2) {
-      return { success: false, error: `Error: String not found in file: '${oldString}'` };
+      return { success: false, error: STRING_NOT_FOUND(filePath, oldString) };
     }
     if (result.exitCode === 3) {
       return {

@@ -4,14 +4,14 @@
  */
 
 import { test, expect, describe } from "bun:test";
-import { createDeepAgent } from "../../src/agent";
+import { createDeepAgent } from "@/agent.ts";
 import { anthropic } from "@ai-sdk/anthropic";
 import type {
   LoopControlOptions,
   GenerationOptions,
   AdvancedAgentOptions,
   SubAgent,
-} from "../../src/types";
+} from "@/types.ts";
 
 // Simple mock for testing
 const mockModel = {

@@ -20,6 +20,10 @@ import {
   performStringReplacement,
   updateFileData,
 } from "./utils";
+import {
+  FILE_NOT_FOUND,
+  FILE_ALREADY_EXISTS,
+} from "../constants/errors";
 
 /**
  * Backend that stores files in shared state (ephemeral).
@@ -122,7 +126,7 @@ export class StateBackend implements BackendProtocol {
     const fileData = files[filePath];
 
     if (!fileData) {
-      return `Error: File '${filePath}' not found`;
+      return FILE_NOT_FOUND(filePath);
     }
 
     return formatReadResponse(fileData, offset, limit);
@@ -156,7 +160,7 @@ export class StateBackend implements BackendProtocol {
     if (filePath in files) {
       return {
         success: false,
-        error: `Cannot write to ${filePath} because it already exists. Read and then make an edit, or write to a new path.`,
+        error: FILE_ALREADY_EXISTS(filePath),
       };
     }
 
@@ -178,7 +182,7 @@ export class StateBackend implements BackendProtocol {
     const fileData = files[filePath];
 
     if (!fileData) {
-      return { success: false, error: `Error: File '${filePath}' not found` };
+      return { success: false, error: FILE_NOT_FOUND(filePath) };
     }
 
     const content = fileDataToString(fileData);

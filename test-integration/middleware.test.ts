@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { createDeepAgent } from "../src/agent.ts";
+import { createDeepAgent } from "@/agent.ts";
 import { createAnthropic } from '@ai-sdk/anthropic';
 import type { LanguageModelMiddleware } from "ai";
 

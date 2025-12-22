@@ -13,6 +13,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { render, useApp, useInput, Box, Text, Static } from "ink";
 import { FilesystemBackend } from "../backends/filesystem.js";
+import {
+  DEFAULT_EVICTION_TOKEN_LIMIT,
+  DEFAULT_SUMMARIZATION_THRESHOLD,
+  DEFAULT_KEEP_MESSAGES,
+  CONTEXT_WINDOW,
+} from "../constants/limits";
 import { FileSaver } from "../checkpointer/file-saver.js";
 import { useAgent, type AgentEventLog } from "./hooks/useAgent.js";
 import {
@@ -68,10 +74,10 @@ interface CLIOptions {
 
 // Default values for features (enabled by default)
 const DEFAULT_PROMPT_CACHING = true;
-const DEFAULT_EVICTION_LIMIT = 20000;
+const DEFAULT_EVICTION_LIMIT = DEFAULT_EVICTION_TOKEN_LIMIT;
 const DEFAULT_SUMMARIZATION = true;
-const DEFAULT_SUMMARIZATION_THRESHOLD = 170000;
-const DEFAULT_SUMMARIZATION_KEEP = 6;
+const DEFAULT_SUMMARIZATION_THRESHOLD_VALUE = DEFAULT_SUMMARIZATION_THRESHOLD;
+const DEFAULT_SUMMARIZATION_KEEP = DEFAULT_KEEP_MESSAGES;
 
 function parseArgs(): CLIOptions {
   const args = process.argv.slice(2);
@@ -80,7 +86,7 @@ function parseArgs(): CLIOptions {
     enablePromptCaching: DEFAULT_PROMPT_CACHING,
     toolResultEvictionLimit: DEFAULT_EVICTION_LIMIT,
     enableSummarization: DEFAULT_SUMMARIZATION,
-    summarizationThreshold: DEFAULT_SUMMARIZATION_THRESHOLD,
+    summarizationThreshold: DEFAULT_SUMMARIZATION_THRESHOLD_VALUE,
     summarizationKeepMessages: DEFAULT_SUMMARIZATION_KEEP,
   };
 
@@ -871,7 +877,7 @@ function FeaturesPanel({ features, options }: FeaturesPanelProps): React.ReactEl
             <Text color={colors.success}>✓ </Text>
             <Text>Auto-Summarization: </Text>
             <Text color={colors.success}>
-              enabled ({options.summarizationThreshold || 170000} tokens, keep {options.summarizationKeepMessages || 6} msgs)
+              enabled ({options.summarizationThreshold || DEFAULT_SUMMARIZATION_THRESHOLD} tokens, keep {options.summarizationKeepMessages || DEFAULT_KEEP_MESSAGES} msgs)
             </Text>
           </>
         ) : (
@@ -883,7 +889,7 @@ function FeaturesPanel({ features, options }: FeaturesPanelProps): React.ReactEl
         )}
       </Box>
       <Box height={1} />
-      <Text dimColor>Enable with: --cache --eviction-limit 20000 --summarize</Text>
+      <Text dimColor>Enable with: --cache --eviction-limit {DEFAULT_EVICTION_LIMIT} --summarize</Text>
     </Box>
   );
 }
@@ -899,10 +905,9 @@ interface TokensPanelProps {
 
 function TokensPanel({ tokenCount, messageCount }: TokensPanelProps): React.ReactElement {
   const formatNumber = (n: number) => n.toLocaleString();
-  
-  // Estimate percentage of typical context window (200k for Claude)
-  const contextWindow = 200000;
-  const percentage = Math.round((tokenCount / contextWindow) * 100);
+
+  // Estimate percentage of typical context window
+  const percentage = Math.round((tokenCount / CONTEXT_WINDOW) * 100);
   
   // Color based on usage
   let usageColor: string = colors.success;

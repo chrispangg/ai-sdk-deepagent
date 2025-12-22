@@ -16,6 +16,19 @@ import type {
   EventCallback,
 } from "../types";
 import { evictToolResult } from "../utils/eviction";
+import {
+  WEB_SEARCH_ERROR,
+  REQUEST_TIMEOUT,
+} from "../constants/errors";
+import { DEFAULT_TIMEOUT_SECONDS } from "../constants/limits";
+import {
+  createWebSearchStartEvent,
+  createWebSearchFinishEvent,
+  createHttpRequestStartEvent,
+  createHttpRequestFinishEvent,
+  createFetchUrlStartEvent,
+  createFetchUrlFinishEvent,
+} from "../utils/events";
 
 // ============================================================================
 // Helper Functions
@@ -131,10 +144,7 @@ export function createWebSearchTool(
     execute: async ({ query, max_results, topic, include_raw_content }, { toolCallId }) => {
       // Emit start event
       if (onEvent) {
-        onEvent({
-          type: "web-search-start",
-          query,
-        });
+        onEvent(createWebSearchStartEvent(query));
       }
 
       try {
@@ -164,11 +174,7 @@ export function createWebSearchTool(
 
         // Emit finish event
         if (onEvent) {
-          onEvent({
-            type: "web-search-finish",
-            query,
-            resultCount: results.length,
-          });
+          onEvent(createWebSearchFinishEvent(query, results.length));
         }
 
         // Evict if needed
@@ -189,15 +195,11 @@ export function createWebSearchTool(
         return output;
       } catch (error: unknown) {
         const err = error as Error;
-        const errorMessage = `Web search error: ${err.message}`;
+        const errorMessage = WEB_SEARCH_ERROR(err.message);
 
         // Emit finish event with 0 results (error case)
         if (onEvent) {
-          onEvent({
-            type: "web-search-finish",
-            query,
-            resultCount: 0,
-          });
+          onEvent(createWebSearchFinishEvent(query, 0));
         }
 
         return errorMessage;
@@ -257,11 +259,7 @@ export function createHttpRequestTool(
     execute: async ({ url, method, headers, body, params, timeout }, { toolCallId }) => {
       // Emit start event
       if (onEvent) {
-        onEvent({
-          type: "http-request-start",
-          url,
-          method,
-        });
+        onEvent(createHttpRequestStartEvent(url, method));
       }
 
       try {
@@ -317,11 +315,7 @@ export function createHttpRequestTool(
 
         // Emit finish event
         if (onEvent) {
-          onEvent({
-            type: "http-request-finish",
-            url: response.url,
-            statusCode: response.status,
-          });
+          onEvent(createHttpRequestFinishEvent(response.url, response.status));
         }
 
         // Evict if needed
@@ -345,18 +339,14 @@ export function createHttpRequestTool(
         let errorMessage: string;
 
         if (err.name === "TimeoutError" || err.name === "AbortError") {
-          errorMessage = `Request timed out after ${timeout} seconds`;
+          errorMessage = REQUEST_TIMEOUT(timeout);
         } else {
           errorMessage = `HTTP request error: ${err.message}`;
         }
 
         // Emit finish event with error status
         if (onEvent) {
-          onEvent({
-            type: "http-request-finish",
-            url,
-            statusCode: 0,
-          });
+          onEvent(createHttpRequestFinishEvent(url, 0));
         }
 
         return errorMessage;
@@ -411,10 +401,7 @@ export function createFetchUrlTool(
     execute: async ({ url, timeout, extract_article }, { toolCallId }) => {
       // Emit start event
       if (onEvent) {
-        onEvent({
-          type: "fetch-url-start",
-          url,
-        });
+        onEvent(createFetchUrlStartEvent(url));
       }
 
       try {
@@ -430,11 +417,7 @@ export function createFetchUrlTool(
           const errorMsg = `HTTP error: ${response.status} ${response.statusText}`;
 
           if (onEvent) {
-            onEvent({
-              type: "fetch-url-finish",
-              url: response.url,
-              success: false,
-            });
+            onEvent(createFetchUrlFinishEvent(response.url, false));
           }
 
           return errorMsg;
@@ -472,11 +455,7 @@ export function createFetchUrlTool(
 
         // Emit finish event
         if (onEvent) {
-          onEvent({
-            type: "fetch-url-finish",
-            url: response.url,
-            success: true,
-          });
+          onEvent(createFetchUrlFinishEvent(response.url, true));
         }
 
         // Evict large content
@@ -501,18 +480,14 @@ export function createFetchUrlTool(
         let errorMessage: string;
 
         if (err.name === "TimeoutError" || err.name === "AbortError") {
-          errorMessage = `Request timed out after ${timeout} seconds`;
+          errorMessage = REQUEST_TIMEOUT(timeout);
         } else {
           errorMessage = `Error fetching URL: ${err.message}`;
         }
 
         // Emit error finish event
         if (onEvent) {
-          onEvent({
-            type: "fetch-url-finish",
-            url,
-            success: false,
-          });
+          onEvent(createFetchUrlFinishEvent(url, false));
         }
 
         return errorMessage;
@@ -554,7 +529,7 @@ export function createWebTools(
     onEvent,
     toolResultEvictionLimit,
     tavilyApiKey = process.env.TAVILY_API_KEY,
-    defaultTimeout = 30,
+    defaultTimeout = DEFAULT_TIMEOUT_SECONDS,
   } = options || {};
 
   // Return empty object if no Tavily API key

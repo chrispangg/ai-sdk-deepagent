@@ -10,7 +10,7 @@
  */
 
 import { test, expect, describe, beforeEach } from "bun:test";
-import { createDeepAgent, StateBackend, MemorySaver } from "../../src/index.ts";
+import { createDeepAgent, StateBackend, MemorySaver } from "@/index.ts";
 import type { ModelMessage } from "ai";
 import { tool } from "ai";
 import { z } from "zod";

@@ -7,9 +7,9 @@
  */
 
 import { test, expect, describe, beforeEach, afterEach } from "bun:test";
-import { createDeepAgent } from "../../src/agent.ts";
-import { StateBackend } from "../../src/backends/state.ts";
-import { FilesystemBackend } from "../../src/backends/filesystem.ts";
+import { createDeepAgent } from "@/agent.ts";
+import { StateBackend } from "@/backends/state.ts";
+import { FilesystemBackend } from "@/backends/filesystem.ts";
 import { createAnthropic } from '@ai-sdk/anthropic';
 import type {
   DeepAgentState,
@@ -20,7 +20,7 @@ import type {
   SubAgent,
   TodoItem,
   DeepAgentEvent
-} from "../../src/types.ts";
+} from "@/types.ts";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";

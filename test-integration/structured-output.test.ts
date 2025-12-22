@@ -11,9 +11,9 @@
  */
 
 import { test, expect, describe, beforeEach } from "bun:test";
-import { createDeepAgent } from "../src/agent.ts";
-import { StateBackend } from "../src/backends/state.ts";
-import type { DeepAgentState, CreateDeepAgentParams, DoneEvent, SubAgent } from "../src/types.ts";
+import { createDeepAgent } from "@/agent.ts";
+import { StateBackend } from "@/backends/state.ts";
+import type { DeepAgentState, CreateDeepAgentParams, DoneEvent, SubAgent } from "@/types.ts";
 import { tool } from "ai";
 import { z } from "zod";
 import { createAnthropic } from '@ai-sdk/anthropic';

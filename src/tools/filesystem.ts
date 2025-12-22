@@ -15,6 +15,12 @@ import {
   evictToolResult,
   DEFAULT_EVICTION_TOKEN_LIMIT,
 } from "../utils/eviction";
+import {
+  createFileReadEvent,
+  createFileWriteStartEvent,
+  createFileWrittenEvent,
+  createFileEditedEvent,
+} from "../utils/events";
 
 // Tool descriptions
 const LS_TOOL_DESCRIPTION = "List files and directories in a directory. Paths are relative to the working directory.";
@@ -117,11 +123,7 @@ export function createReadFileTool(
       // Emit file-read event
       if (onEvent) {
         const lineCount = content.split("\n").length;
-        onEvent({
-          type: "file-read",
-          path: file_path,
-          lines: lineCount,
-        });
+        onEvent(createFileReadEvent(file_path, lineCount));
       }
       
       // Evict large results if limit is set
@@ -158,11 +160,7 @@ export function createWriteFileTool(
     execute: async ({ file_path, content }) => {
       // Emit file-write-start event for preview
       if (onEvent) {
-        onEvent({
-          type: "file-write-start",
-          path: file_path,
-          content,
-        });
+        onEvent(createFileWriteStartEvent(file_path, content));
       }
 
       const resolvedBackend = getBackend(backend, state);
@@ -174,11 +172,7 @@ export function createWriteFileTool(
 
       // Emit file-written event with content
       if (onEvent) {
-        onEvent({
-          type: "file-written",
-          path: file_path,
-          content,
-        });
+        onEvent(createFileWrittenEvent(file_path, content));
       }
 
       return `Successfully wrote to '${file_path}'`;
@@ -222,11 +216,7 @@ export function createEditFileTool(
 
       // Emit event if callback provided
       if (onEvent) {
-        onEvent({
-          type: "file-edited",
-          path: file_path,
-          occurrences: result.occurrences ?? 0,
-        });
+        onEvent(createFileEditedEvent(file_path, result.occurrences ?? 0));
       }
 
       return `Successfully replaced ${result.occurrences} occurrence(s) in '${file_path}'`;

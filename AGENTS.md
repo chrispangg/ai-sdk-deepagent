@@ -103,6 +103,35 @@ test("agent behavior", async () => {
 });
 ```
 
+## Test Organization
+
+**Unit Tests** (`test/`):
+
+- Fast, isolated tests with no external dependencies
+- Run by default: `bun run test`
+- Executed in CI on every push
+- Examples: `test/backends/utils.test.ts`, `test/approval.test.ts`
+
+**Integration Tests** (`test-integration/`):
+
+- Require API keys and external services (Anthropic, OpenAI)
+- Must be run explicitly: `bun run test:integration`
+- Skipped in CI (manual or separate workflow only)
+- Examples: `test-integration/middleware.test.ts`, `test-integration/structured-output.test.ts`
+
+**Running Tests**:
+
+```bash
+# Unit tests (default, CI)
+bun run test
+
+# Integration tests (requires ANTHROPIC_API_KEY)
+bun run test:integration
+
+# All tests
+bun run test:all
+```
+
 ## Publishing & Commit Messages
 
 **CRITICAL**: This repo uses GitHub Actions for automated npm publishing. Commit messages control version bumps.

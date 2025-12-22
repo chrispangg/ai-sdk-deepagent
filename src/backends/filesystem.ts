@@ -21,6 +21,11 @@ import {
   formatContentWithLineNumbers,
   performStringReplacement,
 } from "./utils";
+import {
+  FILE_NOT_FOUND,
+  FILE_ALREADY_EXISTS,
+} from "../constants/errors";
+import { MAX_FILE_SIZE_MB, DEFAULT_READ_LIMIT } from "../constants/limits";
 
 const SUPPORTS_NOFOLLOW = fsSync.constants.O_NOFOLLOW !== undefined;
 
@@ -72,7 +77,7 @@ export class FilesystemBackend implements BackendProtocol {
       maxFileSizeMb?: number;
     } = {}
   ) {
-    const { rootDir, virtualMode = false, maxFileSizeMb = 10 } = options;
+    const { rootDir, virtualMode = false, maxFileSizeMb = MAX_FILE_SIZE_MB } = options;
     this.cwd = rootDir ? path.resolve(rootDir) : process.cwd();
     this.virtualMode = virtualMode;
     this.maxFileSizeBytes = maxFileSizeMb * 1024 * 1024;
@@ -193,7 +198,7 @@ export class FilesystemBackend implements BackendProtocol {
   async read(
     filePath: string,
     offset: number = 0,
-    limit: number = 2000
+    limit: number = DEFAULT_READ_LIMIT
   ): Promise<string> {
     try {
       const resolvedPath = this.resolvePath(filePath);
@@ -203,7 +208,7 @@ export class FilesystemBackend implements BackendProtocol {
       if (SUPPORTS_NOFOLLOW) {
         const stat = await fs.stat(resolvedPath);
         if (!stat.isFile()) {
-          return `Error: File '${filePath}' not found`;
+          return FILE_NOT_FOUND(filePath);
         }
         const fd = await fs.open(
           resolvedPath,
@@ -220,7 +225,7 @@ export class FilesystemBackend implements BackendProtocol {
           return `Error: Symlinks are not allowed: ${filePath}`;
         }
         if (!stat.isFile()) {
-          return `Error: File '${filePath}' not found`;
+          return FILE_NOT_FOUND(filePath);
         }
         content = await fs.readFile(resolvedPath, "utf-8");
       }
@@ -300,7 +305,7 @@ export class FilesystemBackend implements BackendProtocol {
         }
         return {
           success: false,
-          error: `Cannot write to ${filePath} because it already exists. Read and then make an edit, or write to a new path.`,
+          error: FILE_ALREADY_EXISTS(filePath),
         };
       } catch {
         // File doesn't exist, good to proceed
@@ -349,7 +354,7 @@ export class FilesystemBackend implements BackendProtocol {
       if (SUPPORTS_NOFOLLOW) {
         const stat = await fs.stat(resolvedPath);
         if (!stat.isFile()) {
-          return { success: false, error: `Error: File '${filePath}' not found` };
+          return { success: false, error: FILE_NOT_FOUND(filePath) };
         }
 
         const fd = await fs.open(
@@ -367,7 +372,7 @@ export class FilesystemBackend implements BackendProtocol {
           return { success: false, error: `Error: Symlinks are not allowed: ${filePath}` };
         }
         if (!stat.isFile()) {
-          return { success: false, error: `Error: File '${filePath}' not found` };
+          return { success: false, error: FILE_NOT_FOUND(filePath) };
         }
         content = await fs.readFile(resolvedPath, "utf-8");
       }

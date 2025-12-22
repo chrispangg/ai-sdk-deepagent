@@ -43,7 +43,7 @@ jobs:
         run: bun run typecheck
 
       - name: Run tests
-        run: bun test
+        run: bun test test/  # Only unit tests
 
       - name: Configure Git
         run: |

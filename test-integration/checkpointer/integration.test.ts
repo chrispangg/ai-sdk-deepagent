@@ -6,7 +6,7 @@
  */
 
 import { test, expect, beforeEach } from "bun:test";
-import { createDeepAgent, MemorySaver, FileSaver } from "../../src/index.ts";
+import { createDeepAgent, MemorySaver, FileSaver } from "@/index.ts";
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { rmSync, existsSync } from "node:fs";
 

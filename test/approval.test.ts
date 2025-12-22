@@ -2,7 +2,7 @@
  * Unit tests for approval utility functions.
  */
 import { test, expect, describe } from "bun:test";
-import { applyInterruptConfig, hasApprovalTools } from "../src/utils/approval";
+import { applyInterruptConfig, hasApprovalTools } from "@/utils/approval";
 import { tool } from "ai";
 import { z } from "zod";
 

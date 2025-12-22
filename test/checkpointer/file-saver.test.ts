@@ -1,7 +1,7 @@
 import { test, expect, beforeEach, afterEach } from "bun:test";
-import { FileSaver } from "../../src/checkpointer/file-saver.ts";
+import { FileSaver } from "@/checkpointer/file-saver.ts";
 import { rmSync, existsSync } from "node:fs";
-import type { Checkpoint } from "../../src/checkpointer/types.ts";
+import type { Checkpoint } from "@/checkpointer/types.ts";
 
 const TEST_DIR = "./.test-checkpoints";
 

@@ -5,6 +5,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { DeepAgentState, TodoItem, EventCallback } from "../types";
+import { createTodosChangedEvent } from "../utils/events";
 
 const TodoItemSchema = z.object({
   id: z.string().describe("Unique identifier for the todo item"),
@@ -76,10 +77,7 @@ When merge=false, the new todos replace all existing todos.`,
 
       // Emit event if callback provided
       if (onEvent) {
-        onEvent({
-          type: "todos-changed",
-          todos: [...state.todos],
-        });
+        onEvent(createTodosChangedEvent([...state.todos]));
       }
 
       // Format current todo list for response

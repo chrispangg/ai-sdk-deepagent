@@ -241,6 +241,412 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
     }
   }, [addEvent]);
 
+  // ============================================================================
+  // Event Handler Context
+  // ============================================================================
+
+  /**
+   * Context object shared by all event handlers.
+   * Contains all refs and setters needed for event processing.
+   */
+  interface EventHandlerContext {
+    setStatus: (status: AgentStatus) => void;
+    setState: React.Dispatch<React.SetStateAction<DeepAgentState>>;
+    setMessages: React.Dispatch<React.SetStateAction<ModelMessage[]>>;
+    setToolCalls: React.Dispatch<React.SetStateAction<ToolCallData[]>>;
+    setError: React.Dispatch<React.SetStateAction<Error | null>>;
+    addEvent: (event: DeepAgentEvent | { type: "text-segment"; text: string }) => void;
+    flushTextSegment: () => void;
+    accumulatedTextRef: React.MutableRefObject<string>;
+    totalTextRef: React.MutableRefObject<string>;
+    toolCallsRef: React.MutableRefObject<ToolCallData[]>;
+    pendingToolCallsRef: React.MutableRefObject<Map<string, ToolCallData>>;
+    messagesRef: React.MutableRefObject<ModelMessage[]>;
+  }
+
+  // ============================================================================
+  // Helper Functions for Common Patterns
+  // ============================================================================
+
+  /**
+   * Common pattern: flush text, set status to "tool-call", add event
+   */
+  const handleToolEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    ctx.flushTextSegment();
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  // ============================================================================
+  // Event Handlers
+  // ============================================================================
+
+  /**
+   * Handle text streaming events.
+   * Accumulates text and updates streaming display.
+   */
+  const handleTextEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "text") return;
+    ctx.setStatus("streaming");
+    ctx.accumulatedTextRef.current += event.text;
+    ctx.totalTextRef.current += event.text;
+    setStreamingText(ctx.accumulatedTextRef.current);
+  };
+
+  /**
+   * Handle step-start events.
+   * Marks beginning of a new reasoning step.
+   */
+  const handleStepStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "step-start") return;
+    // Don't flush here - steps are just markers, text comes after tool results
+    if (event.stepNumber > 1) {
+      ctx.addEvent(event);
+    }
+  };
+
+  /**
+   * Handle tool-call events.
+   * Tracks pending tool calls until results arrive.
+   */
+  const handleToolCallEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "tool-call") return;
+    ctx.flushTextSegment();
+    ctx.setStatus("tool-call");
+    const pendingToolCall: ToolCallData = {
+      toolName: event.toolName,
+      args: event.args,
+      status: "success", // Will be updated on result
+    };
+    ctx.pendingToolCallsRef.current.set(event.toolCallId, pendingToolCall);
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle tool-result events.
+   * Updates pending tool call with result and moves to completed list.
+   */
+  const handleToolResultEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "tool-result") return;
+    const completedToolCall = ctx.pendingToolCallsRef.current.get(
+      event.toolCallId
+    );
+    if (completedToolCall) {
+      completedToolCall.result = event.result;
+      // Move from pending to completed
+      ctx.toolCallsRef.current.push(completedToolCall);
+      ctx.setToolCalls([...ctx.toolCallsRef.current]);
+      ctx.pendingToolCallsRef.current.delete(event.toolCallId);
+    }
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle todos-changed events.
+   * Updates the todos list in state.
+   */
+  const handleTodosChangedEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "todos-changed") return;
+    ctx.flushTextSegment();
+    ctx.setStatus("tool-call");
+    ctx.setState((prev) => ({ ...prev, todos: event.todos }));
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle file-write-start events.
+   */
+  const handleFileWriteStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "file-write-start") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle file-written events.
+   */
+  const handleFileWrittenEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "file-written") return;
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle file-edited events.
+   */
+  const handleFileEditedEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "file-edited") return;
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle file-read events.
+   */
+  const handleFileReadEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "file-read") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle ls events.
+   */
+  const handleLsEvent = (event: DeepAgentEvent, ctx: EventHandlerContext) => {
+    if (event.type !== "ls") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle glob events.
+   */
+  const handleGlobEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "glob") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle grep events.
+   */
+  const handleGrepEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "grep") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle web-search-start events.
+   */
+  const handleWebSearchStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "web-search-start") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle web-search-finish events.
+   */
+  const handleWebSearchFinishEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "web-search-finish") return;
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle http-request-start events.
+   */
+  const handleHttpRequestStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "http-request-start") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle http-request-finish events.
+   */
+  const handleHttpRequestFinishEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "http-request-finish") return;
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle fetch-url-start events.
+   */
+  const handleFetchUrlStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "fetch-url-start") return;
+    handleToolEvent(event, ctx);
+  };
+
+  /**
+   * Handle fetch-url-finish events.
+   */
+  const handleFetchUrlFinishEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "fetch-url-finish") return;
+    ctx.setStatus("tool-call");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle subagent-start events.
+   */
+  const handleSubagentStartEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "subagent-start") return;
+    ctx.setStatus("subagent");
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle subagent-finish events.
+   */
+  const handleSubagentFinishEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "subagent-finish") return;
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle approval-requested events.
+   * Already handled in onApprovalRequest callback, so no-op here.
+   */
+  const handleApprovalRequestedEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    // Approval request is handled in onApprovalRequest callback
+    // Event is already emitted there, no need to duplicate
+  };
+
+  /**
+   * Handle approval-response events.
+   * Already handled in respondToApproval callback, so no-op here.
+   */
+  const handleApprovalResponseEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    // Approval response is handled in respondToApproval callback
+    // Event is already emitted there, no need to duplicate
+  };
+
+  /**
+   * Handle done events.
+   * Flushes remaining text and updates final state.
+   */
+  const handleDoneEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "done") return;
+    // Flush any remaining text as a final text-segment
+    ctx.flushTextSegment();
+    ctx.setStatus("done");
+    ctx.setState(event.state);
+    // Update messages with the new conversation history
+    if (event.messages) {
+      ctx.setMessages(event.messages);
+      ctx.messagesRef.current = event.messages;
+    }
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Handle error events.
+   * Flushes remaining text and marks pending tool calls as failed.
+   */
+  const handleErrorEvent = (
+    event: DeepAgentEvent,
+    ctx: EventHandlerContext
+  ) => {
+    if (event.type !== "error") return;
+    // Flush any remaining text before showing error
+    ctx.flushTextSegment();
+    ctx.setStatus("error");
+    ctx.setError(event.error);
+    // Mark any pending tool calls as failed
+    for (const [id, tc] of ctx.pendingToolCallsRef.current) {
+      tc.status = "error";
+      ctx.toolCallsRef.current.push(tc);
+    }
+    ctx.pendingToolCallsRef.current.clear();
+    ctx.setToolCalls([...ctx.toolCallsRef.current]);
+    ctx.addEvent(event);
+  };
+
+  /**
+   * Type-safe event handler function.
+   */
+  type EventHandler = (event: DeepAgentEvent, ctx: EventHandlerContext) => void;
+
+  /**
+   * Event handler map.
+   * Maps event types to their handler functions.
+   */
+  const EVENT_HANDLERS: Record<string, EventHandler> = {
+    "text": handleTextEvent,
+    "step-start": handleStepStartEvent,
+    "tool-call": handleToolCallEvent,
+    "tool-result": handleToolResultEvent,
+    "todos-changed": handleTodosChangedEvent,
+    "file-write-start": handleFileWriteStartEvent,
+    "file-written": handleFileWrittenEvent,
+    "file-edited": handleFileEditedEvent,
+    "file-read": handleFileReadEvent,
+    "ls": handleLsEvent,
+    "glob": handleGlobEvent,
+    "grep": handleGrepEvent,
+    "web-search-start": handleWebSearchStartEvent,
+    "web-search-finish": handleWebSearchFinishEvent,
+    "http-request-start": handleHttpRequestStartEvent,
+    "http-request-finish": handleHttpRequestFinishEvent,
+    "fetch-url-start": handleFetchUrlStartEvent,
+    "fetch-url-finish": handleFetchUrlFinishEvent,
+    "subagent-start": handleSubagentStartEvent,
+    "subagent-finish": handleSubagentFinishEvent,
+    "approval-requested": handleApprovalRequestedEvent,
+    "approval-response": handleApprovalResponseEvent,
+    "done": handleDoneEvent,
+    "error": handleErrorEvent,
+  };
+
+  // ============================================================================
+  // Main sendPrompt Function
+  // ============================================================================
+
   const sendPrompt = useCallback(
     async (prompt: string): Promise<{ text: string; toolCalls: ToolCallData[] }> => {
       // Reset for new generation - but keep events for history
@@ -300,185 +706,26 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
             });
           },
         })) {
-          // Handle different event types
-          switch (event.type) {
-            case "text":
-              setStatus("streaming");
-              accumulatedTextRef.current += event.text;
-              totalTextRef.current += event.text;
-              setStreamingText(accumulatedTextRef.current);
-              break;
+          // Create event handler context
+          const eventHandlerContext: EventHandlerContext = {
+            setStatus,
+            setState,
+            setMessages,
+            setToolCalls,
+            setError,
+            addEvent,
+            flushTextSegment,
+            accumulatedTextRef,
+            totalTextRef,
+            toolCallsRef,
+            pendingToolCallsRef,
+            messagesRef,
+          };
 
-            case "step-start":
-              // Don't flush here - steps are just markers, text comes after tool results
-              if (event.stepNumber > 1) {
-                addEvent(event);
-              }
-              break;
-
-            case "tool-call":
-              // Flush text before tool call event
-              flushTextSegment();
-              setStatus("tool-call");
-              // Track the pending tool call
-              const pendingToolCall: ToolCallData = {
-                toolName: event.toolName,
-                args: event.args,
-                status: "success", // Will be updated on result
-              };
-              pendingToolCallsRef.current.set(event.toolCallId, pendingToolCall);
-              addEvent(event);
-              break;
-
-            case "tool-result":
-              // Update the pending tool call with result
-              const completedToolCall = pendingToolCallsRef.current.get(event.toolCallId);
-              if (completedToolCall) {
-                completedToolCall.result = event.result;
-                // Move from pending to completed
-                toolCallsRef.current.push(completedToolCall);
-                setToolCalls([...toolCallsRef.current]);
-                pendingToolCallsRef.current.delete(event.toolCallId);
-              }
-              addEvent(event);
-              break;
-
-            case "todos-changed":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              setState((prev) => ({ ...prev, todos: event.todos }));
-              addEvent(event);
-              break;
-
-            case "file-write-start":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "file-written":
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "file-edited":
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "file-read":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "ls":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "glob":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "grep":
-              // Flush text before tool-related events
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "web-search-start":
-              // Flush text before web search event
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "web-search-finish":
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "http-request-start":
-              // Flush text before HTTP request event
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "http-request-finish":
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "fetch-url-start":
-              // Flush text before URL fetch event
-              flushTextSegment();
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "fetch-url-finish":
-              setStatus("tool-call");
-              addEvent(event);
-              break;
-
-            case "subagent-start":
-              setStatus("subagent");
-              addEvent(event);
-              break;
-
-            case "subagent-finish":
-              addEvent(event);
-              break;
-
-            case "approval-requested":
-              // Approval request is handled in onApprovalRequest callback
-              // Event is already emitted there, no need to duplicate
-              break;
-
-            case "approval-response":
-              // Approval response is handled in respondToApproval callback
-              // Event is already emitted there, no need to duplicate
-              break;
-
-            case "done":
-              // Flush any remaining text as a final text-segment
-              // This captures the last part of the response that was being streamed
-              flushTextSegment();
-              setStatus("done");
-              setState(event.state);
-              // Update messages with the new conversation history
-              if (event.messages) {
-                setMessages(event.messages);
-                messagesRef.current = event.messages;
-              }
-              addEvent(event);
-              break;
-
-            case "error":
-              // Flush any remaining text before showing error
-              flushTextSegment();
-              setStatus("error");
-              setError(event.error);
-              // Mark any pending tool calls as failed
-              for (const [id, tc] of pendingToolCallsRef.current) {
-                tc.status = "error";
-                toolCallsRef.current.push(tc);
-              }
-              pendingToolCallsRef.current.clear();
-              setToolCalls([...toolCallsRef.current]);
-              addEvent(event);
-              break;
+          // Get the handler for this event type
+          const handler = EVENT_HANDLERS[event.type];
+          if (handler) {
+            handler(event, eventHandlerContext);
           }
         }
 

@@ -24,7 +24,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "bun test",
+    "test": "bun test test/",
+    "test:integration": "bun test test-integration/",
+    "test:all": "bun run test && bun run test:integration",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "bun run typecheck",
     "cli": "bun src/cli/index.tsx"

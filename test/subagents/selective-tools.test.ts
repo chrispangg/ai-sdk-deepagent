@@ -10,13 +10,13 @@
  */
 
 import { test, expect, describe, beforeEach, afterEach, mock } from "bun:test";
-import { createDeepAgent } from "../../src/agent";
-import { createSubagentTool } from "../../src/tools/subagent";
-import type { DeepAgentState, SubAgent } from "../../src/types";
+import { createDeepAgent } from "@/agent";
+import { createSubagentTool } from "@/tools/subagent";
+import type { DeepAgentState, SubAgent } from "@/types";
 import type { ToolSet } from "ai";
 import { tool } from "ai";
 import { z } from "zod";
-import { StateBackend } from "../../src/backends/state";
+import { StateBackend } from "@/backends/state";
 import {
   web_search,
   http_request,
@@ -29,7 +29,7 @@ import {
   grep,
   write_todos,
   execute
-} from "../../src/tools/index";
+} from "@/tools/index";
 
 // ============================================================================
 // Test Helpers (Used 3+ times across tests)

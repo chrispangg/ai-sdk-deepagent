@@ -2,9 +2,9 @@
  * Unit tests for web tools (web_search, http_request, fetch_url).
  */
 import { test, expect, describe, beforeEach, afterEach, mock } from "bun:test";
-import { createWebTools } from "../../src/tools/web.ts";
-import type { DeepAgentState, DeepAgentEvent } from "../../src/types.ts";
-import { StateBackend } from "../../src/backends/state.ts";
+import { createWebTools } from "@/tools/web.ts";
+import type { DeepAgentState, DeepAgentEvent } from "@/types.ts";
+import { StateBackend } from "@/backends/state.ts";
 
 // Store original fetch to restore after tests
 const originalFetch = globalThis.fetch;

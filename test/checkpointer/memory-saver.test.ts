@@ -1,6 +1,6 @@
 import { test, expect, beforeEach } from "bun:test";
-import { MemorySaver } from "../../src/checkpointer/memory-saver.ts";
-import type { Checkpoint } from "../../src/checkpointer/types.ts";
+import { MemorySaver } from "@/checkpointer/memory-saver.ts";
+import type { Checkpoint } from "@/checkpointer/types.ts";
 
 const createTestCheckpoint = (threadId: string, step = 1): Checkpoint => ({
   threadId,

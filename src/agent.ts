@@ -17,6 +17,11 @@ import {
 } from "ai";
 import type { LanguageModelV3 } from "@ai-sdk/provider";
 import type { z } from "zod";
+import { DEFAULT_MAX_STEPS } from "./constants/limits";
+import {
+  createCheckpointSavedEvent,
+  createCheckpointLoadedEvent,
+} from "./utils/events";
 import type {
   CreateDeepAgentParams,
   DeepAgentState,
@@ -123,7 +128,7 @@ export class DeepAgent {
       systemPrompt,
       subagents = [],
       backend,
-      maxSteps = 100,
+      maxSteps = DEFAULT_MAX_STEPS,
       includeGeneralPurposeAgent = true,
       toolResultEvictionLimit,
       enablePromptCaching = false,
@@ -656,11 +661,7 @@ export class DeepAgent {
           };
           await this.checkpointer.save(checkpoint);
 
-          eventQueue.push({
-            type: "checkpoint-saved",
-            threadId,
-            step: cumulativeStep,
-          });
+          eventQueue.push(createCheckpointSavedEvent(threadId, cumulativeStep));
         }
       },
     };
@@ -859,12 +860,11 @@ export class DeepAgent {
         currentStep = checkpoint.step;
         pendingInterrupt = checkpoint.interrupt;
 
-        checkpointEvent = {
-          type: "checkpoint-loaded",
+        checkpointEvent = createCheckpointLoadedEvent(
           threadId,
-          step: checkpoint.step,
-          messagesCount: checkpoint.messages.length,
-        };
+          checkpoint.step,
+          checkpoint.messages.length
+        );
       }
     }
 
@@ -1019,11 +1019,7 @@ export class DeepAgent {
         await this.checkpointer.save(finalCheckpoint);
 
         // Emit checkpoint-saved event for final checkpoint
-        yield {
-          type: "checkpoint-saved",
-          threadId,
-          step: baseStep + stepNumberRef.value,
-        };
+        yield createCheckpointSavedEvent(threadId, baseStep + stepNumberRef.value);
       }
     } catch (error) {
       // Yield error event

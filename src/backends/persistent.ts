@@ -23,6 +23,10 @@ import {
   performStringReplacement,
   updateFileData,
 } from "./utils.js";
+import {
+  FILE_NOT_FOUND,
+  FILE_ALREADY_EXISTS,
+} from "../constants/errors.js";
 
 /**
  * Generic key-value store interface for persistent storage.
@@ -455,7 +459,7 @@ export class PersistentBackend implements BackendProtocol {
     if (existing) {
       return {
         success: false,
-        error: `Cannot write to ${filePath} because it already exists. Read and then make an edit, or write to a new path.`,
+        error: FILE_ALREADY_EXISTS(filePath),
       };
     }
 
@@ -480,7 +484,7 @@ export class PersistentBackend implements BackendProtocol {
     // Get existing file
     const value = await this.store.get(namespace, filePath);
     if (!value) {
-      return { success: false, error: `Error: File '${filePath}' not found` };
+      return { success: false, error: FILE_NOT_FOUND(filePath) };
     }
 
     try {

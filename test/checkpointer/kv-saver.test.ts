@@ -1,7 +1,7 @@
 import { test, expect, beforeEach } from "bun:test";
-import { KeyValueStoreSaver } from "../../src/checkpointer/kv-saver.ts";
-import { InMemoryStore } from "../../src/backends/persistent.ts";
-import type { Checkpoint } from "../../src/checkpointer/types.ts";
+import { KeyValueStoreSaver } from "@/checkpointer/kv-saver.ts";
+import { InMemoryStore } from "@/backends/persistent.ts";
+import type { Checkpoint } from "@/checkpointer/types.ts";
 
 const createTestCheckpoint = (threadId: string, step = 1): Checkpoint => ({
   threadId,

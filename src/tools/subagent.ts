@@ -17,6 +17,10 @@ import type {
 } from "../types";
 import { applyInterruptConfig } from "../utils/approval";
 import {
+  DEFAULT_SUBAGENT_MAX_STEPS,
+  DEFAULT_TIMEOUT_SECONDS,
+} from "../constants/limits";
+import {
   getTaskToolDescription,
   DEFAULT_GENERAL_PURPOSE_DESCRIPTION,
   DEFAULT_SUBAGENT_PROMPT,
@@ -24,6 +28,11 @@ import {
   FILESYSTEM_SYSTEM_PROMPT,
   BASE_PROMPT,
 } from "../prompts";
+import {
+  createSubagentStartEvent,
+  createSubagentStepEvent,
+  createSubagentFinishEvent,
+} from "../utils/events";
 import { createTodosTool } from "./todos";
 import { createFilesystemTools } from "./filesystem";
 import {
@@ -80,7 +89,7 @@ function instantiateBuiltinTool(
 
   // Web tools - require API key and timeout defaults
   const tavilyApiKey = process.env.TAVILY_API_KEY || "";
-  const defaultTimeout = 30;
+  const defaultTimeout = DEFAULT_TIMEOUT_SECONDS;
 
   if (creator === createWebSearchTool) {
     if (!tavilyApiKey) {
@@ -322,11 +331,7 @@ export function createSubagentTool(
 
       // Emit subagent start event
       if (onEvent) {
-        onEvent({
-          type: "subagent-start",
-          name: subagent_type,
-          task: description,
-        });
+        onEvent(createSubagentStartEvent(subagent_type, description));
       }
 
       // Create a fresh state for the subagent (shares files but have own todos)
@@ -363,7 +368,7 @@ export function createSubagentTool(
           model: subagentConfig.model,
           instructions: subagentConfig.systemPrompt,
           tools: allTools,
-          stopWhen: stepCountIs(50), // Enforce 50-step limit for subagents
+          stopWhen: stepCountIs(DEFAULT_SUBAGENT_MAX_STEPS), // Enforce max steps limit for subagents
           // Pass output configuration if subagent has one using AI SDK Output helper
           ...(subagentConfig.output ? { output: Output.object(subagentConfig.output) } : {}),
         };
@@ -393,11 +398,7 @@ export function createSubagentTool(
               result: toolResults[index],
             }));
 
-            onEvent({
-              type: "subagent-step",
-              stepIndex: subagentStepCount++,
-              toolCalls: toolCallsWithResults,
-            });
+            onEvent(createSubagentStepEvent(subagentStepCount++, toolCallsWithResults));
           }
         };
 
@@ -422,11 +423,7 @@ export function createSubagentTool(
 
         // Emit subagent finish event
         if (onEvent) {
-          onEvent({
-            type: "subagent-finish",
-            name: subagent_type,
-            result: formattedResult,
-          });
+          onEvent(createSubagentFinishEvent(subagent_type, formattedResult));
         }
 
         return formattedResult;
@@ -436,11 +433,7 @@ export function createSubagentTool(
 
         // Emit subagent finish event with error
         if (onEvent) {
-          onEvent({
-            type: "subagent-finish",
-            name: subagent_type,
-            result: errorMessage,
-          });
+          onEvent(createSubagentFinishEvent(subagent_type, errorMessage));
         }
 
         return errorMessage;

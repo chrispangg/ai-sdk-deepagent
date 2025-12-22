@@ -2,7 +2,7 @@ import { test, expect, beforeEach, afterEach } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import os from "node:os";
-import { listSkills } from "../../src/skills/load.ts";
+import { listSkills } from "@/skills/load.ts";
 
 // Test directories
 const testUserDir = path.join(os.tmpdir(), `skills-agentid-test-${Date.now()}`);
