@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { render, useApp, useInput, Box, Text, Static } from "ink";
-import { FilesystemBackend } from "../backends/filesystem.js";
+import { LocalSandbox } from "../backends/local-sandbox.js";
 import {
   DEFAULT_EVICTION_TOKEN_LIMIT,
   DEFAULT_SUMMARIZATION_THRESHOLD,
@@ -218,7 +218,7 @@ Examples:
 
 interface AppProps {
   options: CLIOptions;
-  backend: FilesystemBackend;
+  backend: LocalSandbox;
 }
 
 type PanelView = "none" | "help" | "todos" | "files" | "file-content" | "apikey-input" | "features" | "tokens" | "models";
@@ -334,7 +334,7 @@ function App({ options, backend }: AppProps): React.ReactElement {
       case "file":
       case "f":
         try {
-          const files = await backend.lsInfo("/");
+          const files = await backend.lsInfo(".");
           setPanel({ view: "files", files });
         } catch (err) {
           // Handle error
@@ -1055,9 +1055,8 @@ async function main() {
     console.log(`\x1b[33m⚠\x1b[0m No API keys found. Set ANTHROPIC_API_KEY or OPENAI_API_KEY in environment or .env file.`);
   }
 
-  const backend = new FilesystemBackend({
-    rootDir: workDir,
-    virtualMode: true,
+  const backend = new LocalSandbox({
+    cwd: workDir,
   });
 
   render(<App options={options} backend={backend} />);

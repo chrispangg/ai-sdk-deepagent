@@ -13,7 +13,7 @@ import type {
 import type { BaseCheckpointSaver } from "../../checkpointer/types.js";
 import { createDeepAgent } from "../../agent.js";
 import { parseModelString } from "../../utils/model-parser.js";
-import type { FilesystemBackend } from "../../backends/filesystem.js";
+import type { SandboxBackendProtocol } from "../../types.js";
 import type { ToolCallData } from "../components/Message.js";
 import { useEffect } from "react";
 
@@ -37,7 +37,7 @@ export interface UseAgentOptions {
   model: string;
   maxSteps: number;
   systemPrompt?: string;
-  backend: FilesystemBackend;
+  backend: SandboxBackendProtocol;
   /** Enable Anthropic prompt caching */
   enablePromptCaching?: boolean;
   /** Token limit before evicting large tool results */
@@ -669,11 +669,19 @@ export function useAgent(options: UseAgentOptions): UseAgentReturn {
       // Create new abort controller
       abortControllerRef.current = new AbortController();
 
+      // Build the input messages array for streamWithEvents
+      // Append the new prompt to the conversation history (if any exists)
+      const inputMessages = messagesRef.current.length > 0
+        ? [
+            ...messagesRef.current,
+            { role: "user", content: prompt } as ModelMessage,
+          ]
+        : [{ role: "user", content: prompt } as ModelMessage]; // First message: just the prompt
+
       try {
         for await (const event of agentRef.current.streamWithEvents({
-          prompt,
+          messages: inputMessages, // Always use messages parameter (built with or without history)
           state,
-          messages: messagesRef.current,
           threadId: options.sessionId,
           abortSignal: abortControllerRef.current.signal,
           // Approval callback - auto-approve or prompt user

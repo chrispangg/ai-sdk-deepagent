@@ -60,18 +60,18 @@ export function createLsTool(
     inputSchema: z.object({
       path: z
         .string()
-        .default("/")
-        .describe("Directory path to list (default: /)"),
+        .default(".")
+        .describe("Directory path to list (default: current directory)"),
     }),
     execute: async ({ path }) => {
       const resolvedBackend = getBackend(backend, state);
-      const infos = await resolvedBackend.lsInfo(path || "/");
+      const infos = await resolvedBackend.lsInfo(path || ".");
 
       // Emit ls event
       if (onEvent) {
         onEvent({
           type: "ls",
-          path: path || "/",
+          path: path || ".",
           count: infos.length,
         });
       }
@@ -106,7 +106,7 @@ export function createReadFileTool(
   return tool({
     description: READ_FILE_TOOL_DESCRIPTION,
     inputSchema: z.object({
-      file_path: z.string().describe("Path to the file to read (e.g., '/src/main.ts' or 'main.ts')"),
+      file_path: z.string().describe("Path to the file to read (e.g., 'src/main.ts' or './main.ts')"),
       offset: z
         .number()
         .default(0)
@@ -154,7 +154,7 @@ export function createWriteFileTool(
   return tool({
     description: WRITE_FILE_TOOL_DESCRIPTION,
     inputSchema: z.object({
-      file_path: z.string().describe("Path to the file to write (e.g., '/src/main.ts' or 'main.ts')"),
+      file_path: z.string().describe("Path to the file to write (e.g., 'src/main.ts' or './main.ts')"),
       content: z.string().describe("Content to write to the file"),
     }),
     execute: async ({ file_path, content }) => {
@@ -191,7 +191,7 @@ export function createEditFileTool(
   return tool({
     description: EDIT_FILE_TOOL_DESCRIPTION,
     inputSchema: z.object({
-      file_path: z.string().describe("Path to the file to edit (e.g., '/src/main.ts' or 'main.ts')"),
+      file_path: z.string().describe("Path to the file to edit (e.g., 'src/main.ts' or './main.ts')"),
       old_string: z
         .string()
         .describe("String to be replaced (must match exactly)"),
@@ -238,12 +238,12 @@ export function createGlobTool(
       pattern: z.string().describe("Glob pattern (e.g., '*.py', '**/*.ts')"),
       path: z
         .string()
-        .default("/")
-        .describe("Base path to search from (default: /)"),
+        .default(".")
+        .describe("Base path to search from (default: current directory)"),
     }),
     execute: async ({ pattern, path }) => {
       const resolvedBackend = getBackend(backend, state);
-      const infos = await resolvedBackend.globInfo(pattern, path || "/");
+      const infos = await resolvedBackend.globInfo(pattern, path || ".");
 
       // Emit glob event
       if (onEvent) {
@@ -278,8 +278,8 @@ export function createGrepTool(
       pattern: z.string().describe("Regex pattern to search for"),
       path: z
         .string()
-        .default("/")
-        .describe("Base path to search from (default: /)"),
+        .default(".")
+        .describe("Base path to search from (default: current directory)"),
       glob: z
         .string()
         .optional()
@@ -290,7 +290,7 @@ export function createGrepTool(
       const resolvedBackend = getBackend(backend, state);
       const result = await resolvedBackend.grepRaw(
         pattern,
-        path || "/",
+        path || ".",
         glob ?? null
       );
 

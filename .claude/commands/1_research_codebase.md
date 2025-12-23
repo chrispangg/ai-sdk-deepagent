@@ -36,11 +36,12 @@ IMPORTANT: OPTIMIZE the user's research question request using your prompt-engin
    - Use the **codebase-locator** agent to find WHERE files and components live
    - Use the **codebase-analyzer** agent to understand HOW specific code works (without critiquing it)
    - Use the **codebase-pattern-finder** agent to find examples of existing patterns (without evaluating them)
-   - Output directory: `docs/tickets/{ticket-number}_{ticket-name}/`
+   - Output directory: `docs/tickets/{ticket-number}_{ticket_name}/`
    - Examples:
      - For research ticket 013: `docs/tickets/013_authentication_flow/research.md`
      - For research ticket 014 with specific focus: `docs/tickets/014_database_implementation/research.md`
      - Tickets can have multiple research documents under their folder
+     - The ticket number should be the next available number in the sequence, and the ticket name should be the name of the ticket, in snake_case.
 
    **IMPORTANT**: All agents are documentarians, not critics. They will describe what exists without suggesting improvements or identifying issues.
 
@@ -52,7 +53,7 @@ IMPORTANT: OPTIMIZE the user's research question request using your prompt-engin
    - VERY IMPORTANT: In case you discover external libraries as dependencies, use the **codebase-online-researcher** agent for external documentation and resources
      - If you use DeepWiki tools, instruct the agent to return references to code snippets or documentation, PLEASE INCLUDE those references (e.g. source file names, line numbers, etc.)
      - If you perform a web search using the playwright tool, instruct the agent to return LINKS with their findings, and please INCLUDE those links in the research document
-     - Output directory: `docs/tickets/{ticket-number}_{ticket-name}/`
+     - Output directory: `docs/tickets/{ticket-number}_{ticket_name}/`
      - Examples:
        - Research on Redis locks under ticket 015: `docs/tickets/015_redis_locks_usage/research.md`
        - Research on OAuth flows under ticket 016: `docs/tickets/016_oauth_flows/research.md` with external links
@@ -82,7 +83,7 @@ IMPORTANT: OPTIMIZE the user's research question request using your prompt-engin
 ```
 docs/
 ├── tickets/
-│   ├── TICKET-NAME/
+│   ├── TICKET_NUMBER_TICKET_NAME/
 │   │   ├── research-topic-1.md
 │   │   ├── research-topic-2.md
 ├── general-research-topic-1.md
@@ -93,13 +94,9 @@ docs/
 ```
 
 - Naming conventions:
-  - For ticket-associated research:  
-    - Folder: `docs/tickets/TICKET-NAME/`
-    - File: `{research-topic}.md` (use kebab-case for research topic)
-    - Example: `docs/tickets/AI-1234/database-implementation.md`
-  - For non-ticket research:  
-    - File in docs root: `{research-topic}.md`, or you may include the date if desired
-    - Example: `docs/database-implementation.md`, `docs/2025-01-08-authentication-flow.md`
+  - Folder: `docs/tickets/TICKET_NUMBER_TICKET_NAME/` (use snake_case for ticket number and ticket name)
+  - File: `research.md`
+  - Example: `docs/tickets/013_authentication_flow/research.md`
   - For notes: `docs/notes/YYYY-MM-DD-meeting.md`
   - A ticket can have multiple research markdown files under its own folder
 - Structure the document with YAML frontmatter followed by content:

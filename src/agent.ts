@@ -989,9 +989,10 @@ export class DeepAgent {
       const finalText = await result.text;
 
       // Build updated messages array with assistant response
+      // Only include assistant message if there's actual content (avoid empty text blocks)
       const updatedMessages: ModelMessage[] = [
         ...inputMessages,
-        { role: "assistant", content: finalText } as ModelMessage,
+        ...(finalText ? [{ role: "assistant", content: finalText } as ModelMessage] : []),
       ];
 
       // Extract output if present (from ToolLoopAgent's native output parsing)
