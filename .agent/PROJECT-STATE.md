@@ -120,7 +120,7 @@ Tracks feature parity with LangChain's DeepAgents framework. Reference implement
 - [ ] **StoreBackend** - LangGraph BaseStore adapter for cross-thread persistence
   - **Note**: Lower priority since PersistentBackend already handles similar use cases
 
-- [ ] **Cloud Sandbox Integrations** - Modal, Runloop, Daytona providers
+- [ ] **Cloud Sandbox Integrations** - E2B, Modal, Runloop, Daytona providers
   - **Note**: Wait for user demand before implementing
 
 ### Lower Priority
