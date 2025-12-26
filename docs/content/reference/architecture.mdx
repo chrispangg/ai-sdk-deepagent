@@ -9,6 +9,27 @@ This document provides detailed architectural information about ai-sdk-deep-agen
 
 ## Core Components
 
+<Cards>
+  <Card title="DeepAgent" icon="🤖">
+    Main agent class wrapping AI SDK v6's ToolLoopAgent with state management
+  </Card>
+  <Card title="State Management" icon="📊">
+    Todo tracking and virtual filesystem
+  </Card>
+  <Card title="Backends" icon="💾">
+    Pluggable storage and sandbox backends
+  </Card>
+  <Card title="Tools" icon="🔧">
+    Planning, filesystem, web, execution, and subagents
+  </Card>
+  <Card title="CLI" icon="⌨️">
+    Interactive terminal interface built with Ink
+  </Card>
+  <Card title="Skills" icon="📚">
+    Agent-specific capabilities from standardized directories
+  </Card>
+</Cards>
+
 ### 1. DeepAgent (`src/agent.ts`)
 
 Main agent class that wraps AI SDK v6's `ToolLoopAgent` with state management.
@@ -48,20 +69,23 @@ interface FileData {
 
 All backends implement `BackendProtocol` interface with methods: `read()`, `write()`, `edit()`, `ls()`, `lsInfo()`, `glob()`, `grep()`
 
-**Standard Backends:**
+<Tabs items={['Standard Backends', 'Sandbox Backends']}>
+  <Tab value="Standard Backends">
+    - **`StateBackend`**: In-memory storage (default, ephemeral)
+    - **`FilesystemBackend`**: Persists files to actual disk
+    - **`PersistentBackend`**: Cross-conversation memory with key-value store
+    - **`CompositeBackend`**: Combines multiple backends (e.g., filesystem + cloud storage)
+  </Tab>
+  <Tab value="Sandbox Backends">
+    Implement `SandboxBackendProtocol` with `execute()` method:
 
-- **`StateBackend`**: In-memory storage (default, ephemeral)
-- **`FilesystemBackend`**: Persists files to actual disk
-- **`PersistentBackend`**: Cross-conversation memory with key-value store
-- **`CompositeBackend`**: Combines multiple backends (e.g., filesystem + cloud storage)
+    - **`BaseSandbox`**: Abstract base class for implementing sandbox backends
+    - **`LocalSandbox`**: Executes commands in local shell with Node.js scripts
+    - Extensible to: Modal, Runloop, Daytona, cloud providers, etc.
 
-**Sandbox Backends** (implement `SandboxBackendProtocol` with `execute()` method):
-
-- **`BaseSandbox`**: Abstract base class for implementing sandbox backends
-- **`LocalSandbox`**: Executes commands in local shell with Node.js scripts
-- Extensible to: Modal, Runloop, Daytona, cloud providers, etc.
-
-Sandbox backends implement all filesystem operations via shell commands, requiring only the `execute()` method to be implemented.
+    Sandbox backends implement all filesystem operations via shell commands, requiring only the `execute()` method to be implemented.
+  </Tab>
+</Tabs>
 
 ### 4. Tools (`src/tools/`)
 
@@ -162,17 +186,27 @@ The `streamWithEvents()` method emits granular events during generation:
 
 ## Message Handling
 
-**Important**: The agent uses AI SDK's `messages` array for conversation history. When streaming with events:
+<Callout title="Important" type="warn">
+The agent uses AI SDK's `messages` array for conversation history. When streaming with events, always pass `event.messages` back to maintain context.
+</Callout>
+
+<Steps>
+<Step>
+### Conversation Flow
 
 1. The `done` event includes `event.messages` - the updated conversation history
 2. Pass this back to the next `streamWithEvents()` call to maintain context
 3. The library automatically patches "dangling tool calls" (calls without results) via `patchToolCalls()`
+</Step>
+<Step>
+### Message Priority Logic
 
-**Message Priority Logic** (in `streamWithEvents`):
 - Explicit `messages` array takes highest priority
 - `prompt` parameter is converted to a user message (backward compatibility)
 - `threadId` loads checkpoint history
 - Empty `messages` array clears checkpoint history (resets conversation)
+</Step>
+</Steps>
 
 **Example:**
 
@@ -191,7 +225,9 @@ for await (const event of agent.streamWithEvents({ prompt: "Follow up", messages
 }
 ```
 
+<Callout type="warn">
 **Deprecation Notice**: The `prompt` parameter is deprecated in favor of explicit `messages` array. A warning is emitted in non-production environments.
+</Callout>
 
 ## Performance Features
 
@@ -211,29 +247,31 @@ for await (const event of agent.streamWithEvents({ prompt: "Follow up", messages
 
 ### 3. Auto-Summarization
 
-- When conversation exceeds token threshold (170k default), older messages are summarized
+When conversation exceeds token threshold (170k default), older messages are summarized
+
 - Keeps recent messages (6 default) intact for context
 - Uses configurable model (default: same as main model) for summarization
-- Configuration:
-  ```typescript
-  summarization: {
-    enabled: true,
-    tokenThreshold: 170000,  // Trigger threshold
-    keepMessages: 6,         // Recent messages to preserve
-    model: anthropic('claude-haiku-4-5-20250929'),  // Optional: custom summarization model
-  }
-  ```
+
+```typescript
+summarization: {
+  enabled: true,
+  tokenThreshold: 170000,  // Trigger threshold
+  keepMessages: 6,         // Recent messages to preserve
+  model: anthropic('claude-haiku-4-5-20250929'),  // Optional: custom summarization model
+}
+```
 
 ### 4. Loop Control
 
-Advanced control over agent execution via `loopControl` parameter:
+<Callout type="info">
+Advanced control over agent execution via `loopControl` parameter
+</Callout>
 
 - `stopWhen`: Custom stop conditions (can combine with `maxSteps`)
 - `prepareStep`: Hook to modify parameters before each step
 - `onStepFinish`: Callback after each tool execution step
 - `onFinish`: Callback when agent completes
 
-Example:
 ```typescript
 const agent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
@@ -295,17 +333,24 @@ for await (const event of agent.streamWithEvents({
 
 The CLI operates in two modes for tool execution:
 
-- **Safe Mode (default)**: Prompts for approval before `execute`, `write_file`, `edit_file`
-  - Status bar shows: 🔴 Safe mode
-  - At approval prompt: `[Y]` approve, `[N]` deny, `[A]` approve all
-
-- **Auto-Approve Mode**: All tool executions proceed without prompts
-  - Status bar shows: 🟢 Auto-approve
-  - Toggle with `/approve` command
+<Tabs items={['Safe Mode (default)', 'Auto-Approve Mode']}>
+  <Tab value="Safe Mode (default)">
+    - Prompts for approval before `execute`, `write_file`, `edit_file`
+    - Status bar shows: 🔴 Safe mode
+    - At approval prompt: `[Y]` approve, `[N]` deny, `[A]` approve all
+  </Tab>
+  <Tab value="Auto-Approve Mode">
+    - All tool executions proceed without prompts
+    - Status bar shows: 🟢 Auto-approve
+    - Toggle with `/approve` command
+  </Tab>
+</Tabs>
 
 ## Model Specification
 
-**Important**: The library requires AI SDK `LanguageModel` instances instead of string-based model IDs.
+<Callout title="Important" type="warn">
+The library requires AI SDK `LanguageModel` instances instead of string-based model IDs.
+</Callout>
 
 ```typescript
 import { anthropic } from '@ai-sdk/anthropic';
@@ -342,7 +387,9 @@ const agent4 = createDeepAgent({
 
 **Supported Providers**: Any provider from the Vercel AI SDK ecosystem (Anthropic, OpenAI, Azure, Bedrock, Groq, Mistral, etc.)
 
+<Callout type="info">
 **CLI Backward Compatibility**: The CLI internally uses `parseModelString()` from `src/utils/model-parser.ts` to convert string formats like `"anthropic/claude-sonnet-4-5-20250929"` into `LanguageModel` instances. This is only for the CLI - when using the library programmatically, always pass provider instances.
+</Callout>
 
 ## Structured Output
 
@@ -350,14 +397,14 @@ const agent4 = createDeepAgent({
 
 DeepAgent supports structured output via AI SDK v6's ToolLoopAgent native `output` parameter:
 
-**Architecture**:
+**Architecture:**
 
 - Optional `output: { schema, description? }` in `CreateDeepAgentParams`
 - Pass-through to ToolLoopAgent constructor via `Output.object()` helper
 - Output exposed in `generate()`, `stream()`, and `streamWithEvents()` results
 - Subagents can have their own output schemas
 
-**Type Safety**:
+**Type Safety:**
 
 - `result.output` typed based on Zod schema
 - TypeScript infers types automatically
@@ -374,7 +421,7 @@ Subagents can return structured output to parent agents:
 3. **Result formatting**: Structured output appended as JSON to text response
 4. **Parent consumption**: Parent agent receives formatted text with JSON
 
-**Example Format**:
+**Example Format:**
 
 ```
 Research completed successfully.
@@ -389,7 +436,7 @@ Research completed successfully.
 
 ## Agent Memory
 
-Agent memory provides persistent, long-term memory across conversations using markdown files. See [agent-memory.md](./agent-memory.md) for full documentation.
+Agent memory provides persistent, long-term memory across conversations using markdown files. See [agent-memory.md](../guides/agent-memory.md) for full documentation.
 
 **Quick Start:**
 
@@ -429,11 +476,17 @@ const agent = createDeepAgent({
 
 Each skill is a subdirectory with a `SKILL.md` file:
 
-```
-~/.deepagents/my-coding-assistant/skills/
-  my-skill/
-    SKILL.md
-```
+<Files>
+  <Folder name=".deepagents" defaultOpen>
+    <Folder name="my-coding-assistant">
+      <Folder name="skills">
+        <Folder name="my-skill">
+          <File name="SKILL.md" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
 
 ```markdown
 ---
@@ -467,16 +520,20 @@ const agent = createDeepAgent({
 
 ### Advanced Options
 
-Configure advanced AI SDK behavior:
+<Accordions type="single">
+  <Accordion title="Advanced AI SDK Configuration">
+    Configure advanced AI SDK behavior:
 
-```typescript
-const agent = createDeepAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
-  advancedOptions: {
-    // Experimental features, internal settings, etc.
-  },
-});
-```
+    ```typescript
+    const agent = createDeepAgent({
+      model: anthropic('claude-sonnet-4-20250514'),
+      advancedOptions: {
+        // Experimental features, internal settings, etc.
+      },
+    });
+    ```
+  </Accordion>
+</Accordions>
 
 ## Constants and Limits
 

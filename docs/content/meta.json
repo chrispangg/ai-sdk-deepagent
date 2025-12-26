@@ -1,0 +1,12 @@
+{
+    "title": "Documentation",
+    "pages": [
+        "index",
+        "get-started",
+        "---Guides---",
+        "guides",
+        "---Reference---",
+        "reference"
+    ],
+    "defaultOpen": true
+}
