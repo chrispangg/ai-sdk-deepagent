@@ -39,6 +39,9 @@ jobs:
         working-directory: .build-docs
         run: bun run build
 
+      - name: Add .nojekyll file
+        run: touch .build-docs/.output/public/.nojekyll
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
