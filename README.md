@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/chrispangg/ai-sdk-deepagent)
 
-📚 **Documentation**: [ai-sdk-deepagent.vercel.app](https://ai-sdk-deepagent.vercel.app)
+📚 **Documentation**: [ai-sdk-deepagent.vercel.app/docs](https://ai-sdk-deepagent.vercel.app/docs)
 
 > **Note:** This package requires [Bun](https://bun.sh) runtime. It uses Bun-specific features and TypeScript imports.
 
@@ -124,7 +124,7 @@ for await (const event of agent.streamWithEvents({
 
 ## Documentation
 
-For comprehensive guides, API reference, and examples, visit **[ai-sdk-deepagent.vercel.app](https://ai-sdk-deepagent.vercel.app)**
+For comprehensive guides, API reference, and examples, visit **[ai-sdk-deepagent.vercel.app/docs](https://ai-sdk-deepagent.vercel.app/docs)**
 
 ### Key Documentation Sections
 
