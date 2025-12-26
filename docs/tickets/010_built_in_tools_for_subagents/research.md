@@ -14,7 +14,7 @@ last_updated_by: Research Agent
 
 ## Research Question
 
-Review `.agent/PROJECT-STATE.md` on **Subagent Web Tools Access** - is it true that subagents don't have access to web tools? If not, what tools do they have available? In our `.deepagents/agents/example-agent.md` file, we should be able to pass in a set of tools that the subagent can use, similar to the claudecode agents.
+Review `docs/PROJECT-STATE.md` on **Subagent Web Tools Access** - is it true that subagents don't have access to web tools? If not, what tools do they have available? In our `.deepagents/agents/example-agent.md` file, we should be able to pass in a set of tools that the subagent can use, similar to the claudecode agents.
 
 ## Summary
 

@@ -26,7 +26,7 @@ This file provides guidance to AI Agents (Claude Code, Cursor, etc.) when workin
 This project reimplements LangChain's DeepAgents framework using Vercel AI SDK.
 
 - **Reference**: `.refs/deepagentsjs/` (JS) and `.refs/deepagents/` (Python)
-- **Feature tracker**: `.agent/PROJECT-STATE.md`
+- **Feature tracker**: `docs/PROJECT-STATE.md`
 - **Implementation framework**: `PLAYBOOK.md` (Research → Plan → Implement)
 
 **When implementing features**:
@@ -195,7 +195,7 @@ Workflow **SKIPS** publishing for:
 
 - `examples/**`
 - `*.md` files
-- `.github/**`, `.agent/**`, `.refs/**`, `docs/**`
+- `.github/**`, `docs/**`, `.refs/**`, `docs/**`
 
 **See**: `.github/PUBLISHING.md` for full publishing guide and setup instructions.
 
@@ -220,6 +220,6 @@ Workflow **SKIPS** publishing for:
 
 **Need publishing help?** → See `.github/PUBLISHING.md`
 
-**Need feature tracking?** → See `.agent/PROJECT-STATE.md`
+**Need feature tracking?** → See `docs/PROJECT-STATE.md`
 
 **Need implementation process?** → See `PLAYBOOK.md`

@@ -11,6 +11,7 @@ This repository uses **npm Trusted Publishing** with OIDC for secure, token-free
 **Steps:**
 
 1. **Publish the package manually once** (first-time only):
+
    ```bash
    # Ensure you're logged in to npm
    npm login
@@ -37,12 +38,14 @@ This repository uses **npm Trusted Publishing** with OIDC for secure, token-free
 4. **Done!** Future publishes will authenticate automatically via OIDC
 
 **Important Notes:**
+
 - All fields are **case-sensitive** and must match exactly
 - Workflow filename must include the extension (.yaml or .yml)
 - A 404 error during publish usually means configuration mismatch
 - Each package can only have one trusted publisher at a time
 
 **Why Trusted Publishers?**
+
 - ✅ No secrets to manage or rotate
 - ✅ More secure (short-lived OIDC tokens)
 - ✅ Automatic provenance attestation
@@ -66,7 +69,7 @@ The workflow (`publish.yml`) automatically:
    - `examples/**` (example files)
    - `*.md` files (README, CHANGELOG, etc.)
    - `.github/**` (workflow files)
-   - `.agent/**` (agent instructions)
+   - `.docs/**` (agent instructions)
    - `.refs/**` (reference implementations)
    - `docs/**` (documentation)
 

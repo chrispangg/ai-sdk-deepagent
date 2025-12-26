@@ -651,7 +651,7 @@ ToolLoopAgent (fully configured)
 
 - `docs/tickets/004_middleware_architecture/plan.md` - Established middleware pattern for model-level extensions
 - `docs/research/middleware-architecture-research.md` - Validated hybrid approach (middleware + tool-centric)
-- `.agent/PROJECT-STATE.md` - Tracks this feature as `[in_progress]`
+- `docs/PROJECT-STATE.md` - Tracks this feature as `[in_progress]`
 
 ## Open Questions
 

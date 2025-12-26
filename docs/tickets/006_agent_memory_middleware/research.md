@@ -1626,7 +1626,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)) -> User
 
 - `docs/tickets/004_middleware_architecture/research.md` - Middleware architecture research (completed)
 - `docs/tickets/004_middleware_architecture/plan.md` - Middleware implementation plan (completed)
-- `.agent/PROJECT-STATE.md` - Feature parity tracking
+- `docs/PROJECT-STATE.md` - Feature parity tracking
 
 ---
 
@@ -1681,7 +1681,7 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)) -> User
 
 ### Phase 4: Finalization
 
-- [ ] Update `.agent/PROJECT-STATE.md`
+- [ ] Update `docs/PROJECT-STATE.md`
   - [ ] Mark "Agent Memory Middleware" as ✅ Implemented
   - [ ] Update priority rationale
 - [ ] Run tests: `bun test`

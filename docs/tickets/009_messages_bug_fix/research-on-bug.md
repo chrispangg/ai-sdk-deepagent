@@ -14,7 +14,7 @@ last_updated_by: claude-sonnet-4-5-20251001
 
 ## Research Question
 
-Investigate the critical bug mentioned in `.agent/PROJECT-STATE.md` regarding `DeepAgentOptions.messages` implementation - specifically whether the `messages` parameter is being ignored in the DeepAgent implementation.
+Investigate the critical bug mentioned in `docs/PROJECT-STATE.md` regarding `DeepAgentOptions.messages` implementation - specifically whether the `messages` parameter is being ignored in the DeepAgent implementation.
 
 ## Summary
 
@@ -169,7 +169,7 @@ if (options.messages) {
 
 ### Bug Documentation
 
-- **Tracked**: `.agent/PROJECT-STATE.md:45-50` - Listed as critical bug with detailed explanation
+- **Tracked**: `docs/PROJECT-STATE.md:45-50` - Listed as critical bug with detailed explanation
 - **Impact**: "Users expect to pass conversation history via `messages` parameter (standard AI SDK pattern), but it's silently ignored"
 - **Workaround**: "Manually prepend message history to prompt or use checkpointer"
 

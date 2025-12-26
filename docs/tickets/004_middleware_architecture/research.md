@@ -1340,7 +1340,7 @@ const agent = createDeepAgent({
 
 ## Related Research
 
-- `.agent/PROJECT-STATE.md` - Feature parity tracking with priorities
+- `docs/PROJECT-STATE.md` - Feature parity tracking with priorities
 - `docs/architecture.md` - Detailed architecture documentation
 - `docs/patterns.md` - Common usage patterns
 

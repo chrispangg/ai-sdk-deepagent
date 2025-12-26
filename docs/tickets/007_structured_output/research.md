@@ -1023,7 +1023,7 @@ Middleware intercepts final step and converts to structured format.
 ## Related Research
 
 - `docs/tickets/004_middleware_architecture/research.md` - Middleware implementation patterns
-- `.agent/PROJECT-STATE.md` - Feature tracking and priorities
+- `docs/PROJECT-STATE.md` - Feature tracking and priorities
 
 ---
 

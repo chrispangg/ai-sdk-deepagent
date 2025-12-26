@@ -1146,7 +1146,7 @@ DeepAgent supports structured output via AI SDK v6's ToolLoopAgent native `outpu
 
 #### 4. Update PROJECT-STATE.md
 
-**File**: `.agent/PROJECT-STATE.md`
+**File**: `docs/PROJECT-STATE.md`
 **Location**: Move item from "To Implement" to "Implemented"
 
 **Change**: Update line 59

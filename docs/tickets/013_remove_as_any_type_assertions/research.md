@@ -160,7 +160,7 @@ The library uses complex type patterns including:
 ## Related Research
 
 - [`docs/tickets/012_architectural_health_assessment/research.md`](https://github.com/chrispangg/ai-sdk-deepagent/blob/main/docs/tickets/012_architectural_health_assessment/research.md) - Previous architectural analysis
-- [`.agent/PROJECT-STATE.md`](https://github.com/chrispangg/ai-sdk-deepagent/blob/main/.agent/PROJECT-STATE.md) - Tracks this as high-priority item
+- [`docs/PROJECT-STATE.md`](https://github.com/chrispangg/ai-sdk-deepagent/blob/main/docs/PROJECT-STATE.md) - Tracks this as high-priority item
 
 ## Open Questions
 

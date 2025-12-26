@@ -968,7 +968,7 @@ test/                          # Test files
 └── [feature]/
     └── [feature].test.ts      # Actual runnable tests
 
-.agent/
+docs/
 └── PROJECT-STATE.md           # Feature tracking
 ```
 

@@ -986,7 +986,7 @@ expect(result).toHaveLength(count);
 - `docs/architecture.md` - Detailed architecture and components
 - `docs/patterns.md` - Common usage patterns and code examples
 - `docs/checkpointer.md` - Session persistence patterns
-- `.agent/PROJECT-STATE.md` - Feature parity tracking with LangChain DeepAgents
+- `docs/PROJECT-STATE.md` - Feature parity tracking with LangChain DeepAgents
 
 ---
 

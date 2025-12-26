@@ -487,7 +487,7 @@ export interface CreateDeepAgentParams {
 ### Development Patterns
 
 - Uses RPI (Research → Plan → Implement) workflow from `PLAYBOOK.md`
-- Feature tracking in `.agent/PROJECT-STATE.md`
+- Feature tracking in `docs/PROJECT-STATE.md`
 - Comprehensive test patterns with `bun:test`
 
 ## Open Questions

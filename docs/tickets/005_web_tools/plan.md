@@ -1208,7 +1208,7 @@ main().catch(console.error);
 
 #### 3. Update PROJECT-STATE.md
 
-**File**: `.agent/PROJECT-STATE.md`
+**File**: `.docs/PROJECT-STATE.md`
 
 **Changes**: Move web tools from "To Implement" to "Implemented"
 
@@ -1462,6 +1462,7 @@ All decisions below follow the LangChain DeepAgents Python reference implementat
 ### 2. Tool Approval Configuration ✅
 
 **Decision**: Follow LangChain's exact approval pattern:
+
 - ✅ `web_search: true` - **Require approval** (external network request, costs API credits)
 - ✅ `fetch_url: true` - **Require approval** (external network request, privacy concern)
 - ❌ `http_request` - **No approval** (developer tool for trusted APIs, not in LangChain's interrupt config)
@@ -1488,6 +1489,7 @@ return {
 **Rationale**: LangChain does not expose this parameter (`.refs/deepagents/libs/deepagents-cli/deepagents_cli/tools.py:130-135`). Keep it simple and cost-effective.
 
 **Parameters Exposed** (matching LangChain):
+
 - `query: string` - Search query
 - `max_results: number` - Number of results (default: 5)
 - `topic: "general" | "news" | "finance"` - Search category (default: "general")

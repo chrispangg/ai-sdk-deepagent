@@ -1428,7 +1428,7 @@ Implement `BaseCheckpointSaver` interface for custom storage (Redis, database, e
 
 #### 4. Update PROJECT-STATE.md
 
-**File**: `.agent/PROJECT-STATE.md`
+**File**: `docs/PROJECT-STATE.md`
 **Changes**: Move Checkpointer Support to Implemented
 
 ### Success Criteria

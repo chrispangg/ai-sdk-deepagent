@@ -119,7 +119,7 @@ src/cli/
 └── theme.ts                    # Session commands
 
 AGENTS.md                       # Added checkpointer section
-.agent/PROJECT-STATE.md         # Marked as implemented
+.docs/PROJECT-STATE.md         # Marked as implemented
 ```
 
 ## Test Results

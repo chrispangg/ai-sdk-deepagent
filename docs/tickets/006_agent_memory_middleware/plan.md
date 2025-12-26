@@ -1511,7 +1511,7 @@ const agent = createDeepAgent({
   - [ ] Working example
 - [ ] Update `README.md`
   - [ ] Agent memory section
-- [ ] Update `.agent/PROJECT-STATE.md`
+- [ ] Update `docs/PROJECT-STATE.md`
   - [ ] Mark as implemented
 
 ### Phase 4: Finalization
