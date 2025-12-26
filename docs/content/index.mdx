@@ -1,5 +1,101 @@
 ---
-title: Deep Agents Overview
+title: Introduction
 description: Build agents that can plan, use subagents, and leverage file systems for complex tasks
-redirect: /docs/overview
 ---
+
+**Build intelligent agents that can plan, delegate, and manage complex tasks.**
+
+Built on Vercel AI SDK v6, this library extends basic tool-calling with planning tools, virtual filesystems, subagent spawning, and long-term memory.
+
+## Quick Start
+
+<Cards>
+  <Card
+    title="🚀 Quickstart"
+    href="/docs/get-started/get-started"
+    description="Get up and running in minutes with our quickstart guide"
+  />
+  <Card
+    title="📖 Overview"
+    href="/docs/overview"
+    description="Learn about deep agents, their architecture, and when to use them"
+  />
+  <Card
+    title="💻 CLI Usage"
+    href="/docs/get-started/cli"
+    description="Interactive command-line interface for agent development"
+  />
+</Cards>
+
+## Core Features
+
+<Cards>
+  <Card
+    title="📋 Planning & Task Decomposition"
+    href="/docs/guides/harness"
+    description="Built-in write_todos tool enables agents to break down complex tasks and track progress"
+  />
+  <Card
+    title="🗂️ Virtual Filesystem"
+    href="/docs/guides/harness#filesystem-tools"
+    description="Stateful file operations across tool calls for context management"
+  />
+  <Card
+    title="🤖 Subagent Spawning"
+    href="/docs/guides/subagents"
+    description="Delegate specialized work to isolated subagents for clean context"
+  />
+  <Card
+    title="🧠 Long-term Memory"
+    href="/docs/guides/long-term-memory"
+    description="Cross-conversation persistence with pluggable backend storage"
+  />
+  <Card
+    title="🛡️ Human-in-the-Loop"
+    href="/docs/guides/human-in-the-loop"
+    description="Approval workflows for sensitive operations and safety controls"
+  />
+  <Card
+    title="⚙️ Middleware"
+    href="/docs/guides/middleware"
+    description="Composable middleware for logging, caching, telemetry, and custom behavior"
+  />
+</Cards>
+
+## Configuration Guides
+
+<Cards>
+  <Card
+    title="🗄️ Backend Storage"
+    href="/docs/guides/backends"
+    description="Configure state management with in-memory, filesystem, or persistent backends"
+  />
+  <Card
+    title="🔧 Customization"
+    href="/docs/guides/customization"
+    description="Configure prompts, tools, and agent behavior for your use case"
+  />
+  <Card
+    title="📦 Checkpointers"
+    href="/docs/guides/checkpointers"
+    description="Session persistence and state management patterns"
+  />
+  <Card
+    title="🧠 Agent Memory"
+    href="/docs/guides/agent-memory"
+    description="Implement RAG and memory systems for your agents"
+  />
+</Cards>
+
+## Example Use Cases
+
+<Callout type="info">
+Deep agents excel at complex, multi-step tasks that require planning, context management, and specialized subtasks.
+</Callout>
+
+- **Code Analysis & Refactoring**: Analyze entire codebases, write documentation, and refactor code
+- **Research Assistants**: Gather information from multiple sources and synthesize comprehensive reports
+- **Data Processing**: Transform and analyze data with multi-step pipelines
+- **Content Creation**: Plan, research, and generate long-form content
+- **Automation**: Coordinate multiple tools and APIs to complete complex workflows
+- **Testing & QA**: Generate tests, analyze code coverage, and identify edge cases

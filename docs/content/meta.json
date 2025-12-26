@@ -1,6 +1,7 @@
 {
   "title": "Documentation",
   "pages": [
+    "index",
     "overview",
     "...get-started",
     "---Guides---",
