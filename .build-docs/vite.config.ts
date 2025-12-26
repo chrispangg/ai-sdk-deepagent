@@ -4,12 +4,15 @@ import { defineConfig } from 'vite';
 import tsConfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from 'fumadocs-mdx/vite';
-import { nitro } from 'nitro/vite';
 
 export default defineConfig({
+  base: '/ai-sdk-deepagent/',
   server: {
     port: 3000,
   },
+  // build: {
+  //   outDir: '.output/public',
+  // },
   plugins: [
     mdx(await import('./source.config')),
     tailwindcss(),
@@ -22,8 +25,5 @@ export default defineConfig({
       },
     }),
     react(),
-    // see https://tanstack.com/start/latest/docs/framework/react/guide/hosting for hosting config
-    // we configured nitro by default
-    nitro(),
   ],
 });
