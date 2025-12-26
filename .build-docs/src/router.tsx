@@ -5,6 +5,7 @@ import { NotFound } from '@/components/not-found';
 export function getRouter() {
   return createTanStackRouter({
     routeTree,
+    basepath: '/ai-sdk-deepagent',
     defaultPreload: 'intent',
     scrollRestoration: true,
     defaultNotFoundComponent: NotFound,
