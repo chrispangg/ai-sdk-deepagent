@@ -254,6 +254,46 @@
    Terminal-inspired aesthetic matching homepage
    ======================================== */
 
+/* Override fumadocs CSS variables for light theme */
+:root {
+  /* Background colors - Light terminal palette */
+  --background: #FAFAFA;
+  --foreground: #0A0A0A;
+  --muted: #F5F5F5;
+  --muted-foreground: #6B7280;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+
+  /* Border colors - Subtle grid lines */
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+
+  /* Primary accent - Black for terminal focus */
+  --primary: #0A0A0A;
+  --primary-foreground: #FAFAFA;
+
+  /* Secondary - Elevated surfaces */
+  --secondary: #F5F5F5;
+  --secondary-foreground: #0A0A0A;
+
+  /* Accent - Black for highlights */
+  --accent: #0A0A0A;
+  --accent-foreground: #FAFAFA;
+
+  /* Destructive/Error states */
+  --destructive: #DC2626;
+  --destructive-foreground: #FAFAFA;
+
+  /* Ring/Focus states */
+  --ring: #0A0A0A;
+
+  /* Code blocks - Light terminal */
+  --code-block-bg: #F5F5F5;
+  --code-inline-bg: #F5F5F5;
+}
+
 /* Override fumadocs CSS variables for dark theme */
 .dark {
   /* Background colors - Terminal black palette */
@@ -304,39 +344,39 @@
 
 body {
   font-family: var(--font-ibm-plex-sans), system-ui, sans-serif;
-  background-color: var(--home-bg-primary);
-  color: var(--home-text-primary);
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /* Fumadocs layout customization */
 [data-docs-layout] {
-  background-color: var(--home-bg-primary);
+  background-color: var(--background);
 }
 
 /* Sidebar styling - Terminal aesthetic */
 [data-sidebar] {
-  background-color: var(--home-bg-card);
-  border-right: 1px solid var(--home-border-secondary);
+  background-color: var(--card);
+  border-right: 1px solid var(--border);
 }
 
 [data-sidebar] a {
   font-family: var(--font-ibm-plex-sans);
-  color: var(--home-text-secondary);
+  color: var(--muted-foreground);
   transition: all 0.2s ease;
 }
 
 [data-sidebar] a:hover,
 [data-sidebar] a[data-active="true"] {
-  color: var(--home-text-primary);
-  background-color: var(--home-bg-elevated);
-  border-left: 2px solid var(--home-accent);
+  color: var(--foreground);
+  background-color: var(--muted);
+  border-left: 2px solid var(--accent);
 }
 
-/* Header/Navigation styling */
+/* Header/Navigation styling - Light mode */
 nav[data-nav] {
-  background-color: rgba(10, 10, 10, 0.95);
+  background-color: rgba(250, 250, 250, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--home-border-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 nav[data-nav] a {
@@ -344,12 +384,17 @@ nav[data-nav] a {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--home-text-muted);
+  color: var(--muted-foreground);
   transition: color 0.2s ease;
 }
 
 nav[data-nav] a:hover {
-  color: var(--home-text-primary);
+  color: var(--foreground);
+}
+
+/* Header/Navigation styling - Dark mode override */
+.dark nav[data-nav] {
+  background-color: rgba(10, 10, 10, 0.95);
 }
 
 /* Typography - Terminal-inspired hierarchy */
@@ -360,7 +405,7 @@ article h4,
 article h5,
 article h6 {
   font-family: var(--font-ibm-plex-sans);
-  color: var(--home-text-primary);
+  color: var(--foreground);
   font-weight: 600;
   letter-spacing: -0.025em;
 }
@@ -379,7 +424,7 @@ article h2 {
   margin-top: 3rem;
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--home-border-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 article h3 {
@@ -396,27 +441,27 @@ article h4 {
 
 /* Body text */
 article p {
-  color: var(--home-text-secondary);
+  color: var(--muted-foreground);
   line-height: 1.75;
   margin-bottom: 1.5rem;
   font-weight: 300;
 }
 
 article strong {
-  color: var(--home-text-primary);
+  color: var(--foreground);
   font-weight: 600;
 }
 
 /* Links - Minimal underline style */
 article a {
-  color: var(--home-accent);
+  color: var(--accent);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s ease;
 }
 
 article a:hover {
-  border-bottom-color: var(--home-accent);
+  border-bottom-color: var(--accent);
 }
 
 /* Lists */
@@ -424,7 +469,7 @@ article ul,
 article ol {
   margin-bottom: 1.5rem;
   padding-left: 1.5rem;
-  color: var(--home-text-secondary);
+  color: var(--muted-foreground);
 }
 
 article li {
@@ -432,7 +477,8 @@ article li {
 }
 
 article li::marker {
-  color: var(--home-text-muted);
+  color: var(--muted-foreground);
+  opacity: 0.6;
 }
 
 /* Code blocks - Terminal monospace aesthetic */
@@ -440,9 +486,9 @@ article code {
   font-family: var(--font-ibm-plex-mono);
   font-size: 0.875rem;
   padding: 0.25rem 0.5rem;
-  background-color: var(--home-bg-elevated);
-  border: 1px solid var(--home-border-secondary);
-  color: var(--home-accent);
+  background-color: var(--code-inline-bg);
+  border: 1px solid var(--border);
+  color: var(--accent);
   border-radius: 0;
 }
 
@@ -450,8 +496,8 @@ article pre {
   position: relative;
   margin: 2rem 0;
   padding: 1.5rem;
-  background-color: var(--home-bg-card);
-  border: 1px solid var(--home-border-primary);
+  background-color: var(--code-block-bg);
+  border: 1px solid var(--border);
   overflow-x: auto;
   font-family: var(--font-ibm-plex-mono);
   font-size: 0.875rem;
@@ -465,14 +511,14 @@ article pre::before {
   left: 0;
   width: 4px;
   height: 100%;
-  background: var(--home-accent);
+  background: var(--accent);
 }
 
 article pre code {
   padding: 0;
   background: transparent;
   border: none;
-  color: var(--home-text-primary);
+  color: var(--foreground);
   font-size: 0.875rem;
 }
 
@@ -480,9 +526,9 @@ article pre code {
 article blockquote {
   margin: 2rem 0;
   padding-left: 1.5rem;
-  border-left: 3px solid var(--home-accent);
+  border-left: 3px solid var(--accent);
   font-style: italic;
-  color: var(--home-text-secondary);
+  color: var(--muted-foreground);
 }
 
 /* Horizontal rules */
@@ -493,7 +539,7 @@ article hr {
   background: linear-gradient(
     90deg,
     transparent,
-    var(--home-border-secondary),
+    var(--border),
     transparent
   );
 }
@@ -508,12 +554,12 @@ article table {
 }
 
 article table th {
-  background-color: var(--home-bg-elevated);
-  color: var(--home-text-primary);
+  background-color: var(--muted);
+  color: var(--foreground);
   font-weight: 600;
   text-align: left;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--home-border-secondary);
+  border: 1px solid var(--border);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.75rem;
@@ -521,29 +567,29 @@ article table th {
 
 article table td {
   padding: 0.75rem 1rem;
-  border: 1px solid var(--home-border-secondary);
-  color: var(--home-text-secondary);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
 }
 
 article table tr:hover {
-  background-color: var(--home-bg-elevated);
+  background-color: var(--muted);
 }
 
 /* Search - Terminal command aesthetic */
 [data-search-dialog] {
-  background-color: var(--home-bg-card);
-  border: 1px solid var(--home-border-primary);
+  background-color: var(--card);
+  border: 1px solid var(--border);
 }
 
 [data-search-dialog] input {
   font-family: var(--font-ibm-plex-mono);
-  background-color: var(--home-bg-primary);
-  border: 1px solid var(--home-border-secondary);
-  color: var(--home-text-primary);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  color: var(--foreground);
 }
 
 [data-search-dialog] input::placeholder {
-  color: var(--home-text-muted);
+  color: var(--muted-foreground);
   font-family: var(--font-ibm-plex-mono);
 }
 
@@ -551,8 +597,8 @@ article table tr:hover {
 [data-callout] {
   margin: 2rem 0;
   padding: 1.25rem 1.5rem;
-  background-color: var(--home-bg-card);
-  border: 1px solid var(--home-border-secondary);
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-left-width: 3px;
   font-family: var(--font-ibm-plex-sans);
 }
@@ -582,13 +628,13 @@ article table tr:hover {
 }
 
 [data-toc] a {
-  color: var(--home-text-muted);
+  color: var(--muted-foreground);
   transition: color 0.2s ease;
 }
 
 [data-toc] a:hover,
 [data-toc] a[data-active="true"] {
-  color: var(--home-text-primary);
+  color: var(--foreground);
 }
 
 /* Buttons - Minimal terminal style */
@@ -601,21 +647,26 @@ button,
   transition: all 0.2s ease;
 }
 
-/* Scrollbar customization */
+/* Scrollbar customization - Light mode */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--home-bg-primary);
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--home-border-primary);
+  background: var(--border);
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--home-border-accent);
+  background: var(--muted-foreground);
+}
+
+/* Scrollbar customization - Dark mode override */
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
