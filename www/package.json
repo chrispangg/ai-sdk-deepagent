@@ -20,6 +20,7 @@
     "fumadocs-ui": "16.4.0",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",
+    "posthog-js": "^1.310.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-force-graph-2d": "^1.29.0",
