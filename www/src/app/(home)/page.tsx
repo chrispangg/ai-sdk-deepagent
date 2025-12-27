@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getLatestVersion } from '@/lib/version';
 
 const features = [
   {
@@ -70,7 +71,9 @@ console.log(result.text);
 console.log(result.state.todos);
 console.log(Object.keys(result.state.files));`;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const version = await getLatestVersion();
+
   return (
     <div className="min-h-screen bg-[var(--home-bg-primary)] text-[var(--home-text-primary)] font-[family-name:var(--font-ibm-plex-sans)] relative">
       {/* Geometric Grid Background */}
@@ -90,14 +93,28 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto px-6">
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold tracking-tight font-[family-name:var(--font-ibm-plex-mono)]">
-                <span className="text-[var(--home-text-primary)]">ai-sdk-deep-agent</span>
-                <span className="text-[var(--home-text-muted)] ml-2">// v0.9.2</span>
+                <span className="text-[var(--home-text-primary)]">ai-sdk-deepagent</span>
+                <span className="text-[var(--home-text-muted)] ml-2">// v{version}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-[var(--home-accent)] opacity-80" />
-                <span className="text-xs uppercase tracking-widest text-[var(--home-text-muted)]">
-                  Deep Agents
-                </span>
+              <div className="flex items-center gap-6">
+                <Link
+                  href="/docs"
+                  className="text-xs uppercase tracking-widest text-[var(--home-text-muted)] hover:text-[var(--home-text-primary)] transition-colors font-[family-name:var(--font-ibm-plex-mono)]"
+                >
+                  Docs
+                </Link>
+                <Link
+                  href="/blog"
+                  className="text-xs uppercase tracking-widest text-[var(--home-text-muted)] hover:text-[var(--home-text-primary)] transition-colors font-[family-name:var(--font-ibm-plex-mono)]"
+                >
+                  Blog
+                </Link>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-[var(--home-accent)] opacity-80" />
+                  <span className="text-xs uppercase tracking-widest text-[var(--home-text-muted)]">
+                    Deep Agents
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -134,6 +151,12 @@ export default function HomePage() {
                 className="relative inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-[var(--home-accent)] text-[var(--home-accent)] bg-transparent font-medium text-sm font-[family-name:var(--font-ibm-plex-mono)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[var(--home-accent)] hover:text-[var(--home-bg-primary)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.6)] hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--home-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--home-bg-primary)]"
               >
                 Read Documentation
+              </Link>
+              <Link
+                href="/blog"
+                className="relative inline-flex items-center justify-center gap-2 px-7 py-3.5 border border-[var(--home-border-primary)] text-[var(--home-text-secondary)] bg-[var(--home-bg-card)] font-medium text-sm font-[family-name:var(--font-ibm-plex-mono)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[var(--home-text-primary)] hover:text-[var(--home-text-primary)] hover:bg-[var(--home-bg-elevated)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--home-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--home-bg-primary)]"
+              >
+                Read Blog
               </Link>
               <a
                 href="https://github.com/chrispangg/ai-sdk-deepagent"
