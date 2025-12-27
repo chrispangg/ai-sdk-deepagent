@@ -248,3 +248,374 @@
   margin: 2rem 0;
   border: 1px solid var(--home-border-secondary);
 }
+
+/* ========================================
+   FUMADOCS THEME OVERRIDES
+   Terminal-inspired aesthetic matching homepage
+   ======================================== */
+
+/* Override fumadocs CSS variables for dark theme */
+.dark {
+  /* Background colors - Terminal black palette */
+  --background: #0A0A0A;
+  --foreground: #F5F5F5;
+  --muted: #141414;
+  --muted-foreground: #9CA3AF;
+  --popover: #0D0D0D;
+  --popover-foreground: #F5F5F5;
+  --card: #0D0D0D;
+  --card-foreground: #F5F5F5;
+
+  /* Border colors - Subtle grid lines */
+  --border: #1A1A1A;
+  --input: #262626;
+
+  /* Primary accent - White for terminal focus */
+  --primary: #FFFFFF;
+  --primary-foreground: #0A0A0A;
+
+  /* Secondary - Elevated surfaces */
+  --secondary: #141414;
+  --secondary-foreground: #F5F5F5;
+
+  /* Accent - Bright white for highlights */
+  --accent: #FFFFFF;
+  --accent-foreground: #0A0A0A;
+
+  /* Destructive/Error states */
+  --destructive: #EF4444;
+  --destructive-foreground: #F5F5F5;
+
+  /* Ring/Focus states */
+  --ring: #FFFFFF;
+
+  /* Code blocks - Match blog styling */
+  --code-block-bg: #0D0D0D;
+  --code-inline-bg: #141414;
+}
+
+/* Apply IBM Plex fonts globally */
+:root {
+  /* Base font - IBM Plex Sans for body text */
+  --font-sans: var(--font-ibm-plex-sans), system-ui, -apple-system, sans-serif;
+  /* Monospace font - IBM Plex Mono for code and technical elements */
+  --font-mono: var(--font-ibm-plex-mono), 'Courier New', monospace;
+}
+
+body {
+  font-family: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  background-color: var(--home-bg-primary);
+  color: var(--home-text-primary);
+}
+
+/* Fumadocs layout customization */
+[data-docs-layout] {
+  background-color: var(--home-bg-primary);
+}
+
+/* Sidebar styling - Terminal aesthetic */
+[data-sidebar] {
+  background-color: var(--home-bg-card);
+  border-right: 1px solid var(--home-border-secondary);
+}
+
+[data-sidebar] a {
+  font-family: var(--font-ibm-plex-sans);
+  color: var(--home-text-secondary);
+  transition: all 0.2s ease;
+}
+
+[data-sidebar] a:hover,
+[data-sidebar] a[data-active="true"] {
+  color: var(--home-text-primary);
+  background-color: var(--home-bg-elevated);
+  border-left: 2px solid var(--home-accent);
+}
+
+/* Header/Navigation styling */
+nav[data-nav] {
+  background-color: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--home-border-secondary);
+}
+
+nav[data-nav] a {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--home-text-muted);
+  transition: color 0.2s ease;
+}
+
+nav[data-nav] a:hover {
+  color: var(--home-text-primary);
+}
+
+/* Typography - Terminal-inspired hierarchy */
+article h1,
+article h2,
+article h3,
+article h4,
+article h5,
+article h6 {
+  font-family: var(--font-ibm-plex-sans);
+  color: var(--home-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+article h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-bottom: 2rem;
+  font-weight: 300;
+  font-family: var(--font-ibm-plex-mono);
+  letter-spacing: -0.05em;
+}
+
+article h2 {
+  font-size: 1.875rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--home-border-secondary);
+}
+
+article h3 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+article h4 {
+  font-size: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Body text */
+article p {
+  color: var(--home-text-secondary);
+  line-height: 1.75;
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+
+article strong {
+  color: var(--home-text-primary);
+  font-weight: 600;
+}
+
+/* Links - Minimal underline style */
+article a {
+  color: var(--home-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+article a:hover {
+  border-bottom-color: var(--home-accent);
+}
+
+/* Lists */
+article ul,
+article ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  color: var(--home-text-secondary);
+}
+
+article li {
+  margin-bottom: 0.5rem;
+}
+
+article li::marker {
+  color: var(--home-text-muted);
+}
+
+/* Code blocks - Terminal monospace aesthetic */
+article code {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--home-bg-elevated);
+  border: 1px solid var(--home-border-secondary);
+  color: var(--home-accent);
+  border-radius: 0;
+}
+
+article pre {
+  position: relative;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--home-bg-card);
+  border: 1px solid var(--home-border-primary);
+  overflow-x: auto;
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+article pre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--home-accent);
+}
+
+article pre code {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--home-text-primary);
+  font-size: 0.875rem;
+}
+
+/* Blockquotes - Terminal callout style */
+article blockquote {
+  margin: 2rem 0;
+  padding-left: 1.5rem;
+  border-left: 3px solid var(--home-accent);
+  font-style: italic;
+  color: var(--home-text-secondary);
+}
+
+/* Horizontal rules */
+article hr {
+  margin: 3rem 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--home-border-secondary),
+    transparent
+  );
+}
+
+/* Tables - Grid-style terminal output */
+article table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: collapse;
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.875rem;
+}
+
+article table th {
+  background-color: var(--home-bg-elevated);
+  color: var(--home-text-primary);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--home-border-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+article table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--home-border-secondary);
+  color: var(--home-text-secondary);
+}
+
+article table tr:hover {
+  background-color: var(--home-bg-elevated);
+}
+
+/* Search - Terminal command aesthetic */
+[data-search-dialog] {
+  background-color: var(--home-bg-card);
+  border: 1px solid var(--home-border-primary);
+}
+
+[data-search-dialog] input {
+  font-family: var(--font-ibm-plex-mono);
+  background-color: var(--home-bg-primary);
+  border: 1px solid var(--home-border-secondary);
+  color: var(--home-text-primary);
+}
+
+[data-search-dialog] input::placeholder {
+  color: var(--home-text-muted);
+  font-family: var(--font-ibm-plex-mono);
+}
+
+/* Callouts/Admonitions - Terminal message boxes */
+[data-callout] {
+  margin: 2rem 0;
+  padding: 1.25rem 1.5rem;
+  background-color: var(--home-bg-card);
+  border: 1px solid var(--home-border-secondary);
+  border-left-width: 3px;
+  font-family: var(--font-ibm-plex-sans);
+}
+
+[data-callout="note"],
+[data-callout="info"] {
+  border-left-color: #3B82F6;
+}
+
+[data-callout="tip"] {
+  border-left-color: #10B981;
+}
+
+[data-callout="warning"] {
+  border-left-color: #F59E0B;
+}
+
+[data-callout="danger"],
+[data-callout="error"] {
+  border-left-color: #EF4444;
+}
+
+/* Table of Contents - Terminal navigation */
+[data-toc] {
+  font-family: var(--font-ibm-plex-mono);
+  font-size: 0.8125rem;
+}
+
+[data-toc] a {
+  color: var(--home-text-muted);
+  transition: color 0.2s ease;
+}
+
+[data-toc] a:hover,
+[data-toc] a[data-active="true"] {
+  color: var(--home-text-primary);
+}
+
+/* Buttons - Minimal terminal style */
+button,
+[role="button"] {
+  font-family: var(--font-ibm-plex-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--home-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--home-border-primary);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--home-border-accent);
+}
