@@ -14,66 +14,28 @@ The agent memory system uses a two-tier architecture:
 
 Memory content is injected into the model's system prompt on every call, and the model can read/update memory files using filesystem tools.
 
-**⚠️ Important**: This middleware is designed for direct AI SDK usage (`generateText`, `streamText`). It does not currently work with `createDeepAgent` due to ToolLoopAgent's use of `params.instructions` instead of `params.prompt` for the system prompt. See the [integration examples](#integration-examples) for workarounds.
-
 ## Quick Start
 
-### Basic Usage
-
 ```typescript
-import { generateText, wrapLanguageModel } from 'ai';
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
 import { anthropic } from '@ai-sdk/anthropic';
-import { createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
 
 // Create memory middleware
 const memoryMiddleware = createAgentMemoryMiddleware({
   agentId: 'my-coding-assistant',
 });
 
-// Wrap model with memory middleware
-const model = wrapLanguageModel({
+// Create agent with memory
+const agent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   middleware: memoryMiddleware,
 });
 
-// Use with generateText - memory is automatically injected
-const result = await generateText({
-  model,
-  prompt: [
-    { role: 'system', content: 'You are a helpful coding assistant' },
-    { role: 'user', content: 'Help me write a TypeScript function' },
-  ],
+// Memory is automatically loaded and injected into system prompt
+const result = await agent.generate({
+  prompt: 'Help me write a TypeScript function',
 });
 ```
-
-### With Other Features
-
-Agent memory can be combined with other AI SDK features:
-
-```typescript
-// Memory + Manual Skills Loading
-import { listSkills } from 'ai-sdk-deep-agent';
-
-const model = wrapLanguageModel({
-  model: anthropic('claude-sonnet-4-20250514'),
-  middleware: createAgentMemoryMiddleware({
-    agentId: 'my-coding-assistant',
-  }),
-});
-
-const skills = await listSkills({ agentId: 'my-coding-assistant' });
-console.log('Loaded skills:', skills.map(s => s.name));
-
-const result = await generateText({
-  model,
-  prompt: [
-    { role: 'system', content: `You are a helpful assistant with these skills: ${skills.map(s => s.name).join(', ')}` },
-    { role: 'user', content: 'Help me write code' },
-  ],
-});
-```
-
-For DeepAgent integration, see the [manual memory workaround](#manual-memory-with-deepagent-workaround) below.
 
 ## Memory File Locations
 
@@ -223,9 +185,7 @@ Memory is injected into the system prompt using AI SDK v6's `transformParams` ho
 }
 ```
 
-**⚠️ Important Compatibility Note**: The current implementation of `createAgentMemoryMiddleware` enhances `params.prompt` by looking for system messages. However, DeepAgent uses ToolLoopAgent which passes the system prompt via `params.instructions`. This means the middleware currently **does not work** with DeepAgent's agent-based APIs (`generate()`, `stream()`, `streamWithEvents()`).
-
-The middleware is designed for direct AI SDK usage with `generateText()` and `streamText()` where system messages are part of the prompt array. A future update will add DeepAgent compatibility.
+When you create a DeepAgent with middleware, the model is wrapped before being passed to ToolLoopAgent. ToolLoopAgent internally converts its `instructions` parameter to system messages in the `params.prompt` array, which the middleware then enhances with memory content.
 
 ### System Prompt Template
 
@@ -294,38 +254,34 @@ The system prompt teaches the agent:
 
 ## Integration Examples
 
-### Direct AI SDK Usage (Recommended)
-
-The memory middleware is designed for direct AI SDK usage:
+### Basic Usage
 
 ```typescript
-import { generateText, wrapLanguageModel } from 'ai';
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
 import { anthropic } from '@ai-sdk/anthropic';
-import { createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
 
-// Wrap model with memory middleware
-const model = wrapLanguageModel({
-  model: anthropic('claude-sonnet-4-20250514'),
-  middleware: createAgentMemoryMiddleware({
-    agentId: 'research-agent',
-  }),
+const memoryMiddleware = createAgentMemoryMiddleware({
+  agentId: 'research-agent',
 });
 
-// Use with generateText - memory is automatically injected
-const result = await generateText({
-  model,
-  prompt: [
-    { role: 'system', content: 'You are a helpful research assistant' },
-    { role: 'user', content: 'Help me research TypeScript patterns' },
-  ],
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  middleware: memoryMiddleware,
+});
+
+const result = await agent.generate({
+  prompt: 'Help me research TypeScript patterns',
 });
 ```
 
-### With Custom Middleware
+### Combining Multiple Middleware
 
 You can combine memory middleware with other middleware:
 
 ```typescript
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+
 const loggingMiddleware = {
   specificationVersion: 'v3',
   wrapGenerate: async ({ doGenerate }) => {
@@ -334,7 +290,7 @@ const loggingMiddleware = {
   },
 };
 
-const model = wrapLanguageModel({
+const agent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   middleware: [
     loggingMiddleware,
@@ -342,43 +298,22 @@ const model = wrapLanguageModel({
   ],
 });
 
-const result = await generateText({
-  model,
-  prompt: [{ role: 'user', content: 'Hello' }],
+const result = await agent.generate({
+  prompt: 'Hello',
 });
 ```
 
-### Manual Memory with DeepAgent (Workaround)
+## How It Works
 
-For DeepAgent usage, manually load and inject memory:
+The agent memory middleware integrates seamlessly with `createDeepAgent` through AI SDK v6's middleware architecture:
 
-```typescript
-import { createDeepAgent } from 'ai-sdk-deep-agent';
-import { anthropic } from '@ai-sdk/anthropic';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import os from 'node:os';
+1. **Model Wrapping**: When you pass `middleware` to `createDeepAgent`, the model is wrapped using `wrapLanguageModel` before being passed to ToolLoopAgent
+2. **Instructions Conversion**: ToolLoopAgent internally converts its `instructions` parameter to a system message in the `params.prompt` array
+3. **Middleware Interception**: The middleware's `transformParams` hook intercepts the call and sees the complete `params.prompt` array with the system message
+4. **Memory Injection**: The middleware finds the system message and appends memory content to it
+5. **Model Execution**: The enhanced prompt (with memory) is passed to the underlying model
 
-async function loadAgentMemory(agentId: string) {
-  const userMemoryPath = path.join(os.homedir(), '.deepagents', agentId, 'agent.md');
-  try {
-    return await fs.readFile(userMemoryPath, 'utf-8');
-  } catch {
-    return ''; // Return empty string if file doesn't exist
-  }
-}
-
-const memory = await loadAgentMemory('my-agent');
-
-const agent = createDeepAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
-  agentId: 'my-agent', // For skills loading
-  systemPrompt: `You are a helpful assistant.
-
-${memory}`,
-  // Memory manually injected via systemPrompt
-});
-```
+This architecture ensures transparent memory injection without any manual configuration.
 
 ## Memory File Format
 
@@ -487,64 +422,6 @@ const agent = createDeepAgent({
 **Backwards compatibility**: The `skillsDir` parameter still works but shows a deprecation warning.
 
 ## Troubleshooting
-
-### Memory not working with DeepAgent
-
-**Symptom**: Memory middleware doesn't inject content into agent responses
-
-**Cause**: Current implementation incompatibility with ToolLoopAgent
-
-The middleware is designed for direct AI SDK functions:
-
-```typescript
-// ✅ Works - Direct AI SDK usage
-import { generateText } from 'ai';
-import { createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
-
-const model = wrapLanguageModel({
-  model: anthropic('claude-sonnet-4-20250514'),
-  middleware: createAgentMemoryMiddleware({ agentId: 'my-agent' }),
-});
-
-const result = await generateText({
-  model,
-  prompt: [{ role: 'system', content: 'You are helpful' }, { role: 'user', content: 'Hello' }],
-});
-```
-
-```typescript
-// ❌ Doesn't work yet - DeepAgent usage
-import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
-
-const agent = createDeepAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
-  middleware: createAgentMemoryMiddleware({ agentId: 'my-agent' }),
-  // Memory won't be injected - middleware needs update for ToolLoopAgent
-});
-```
-
-**Workaround**: Use manual memory injection via `systemPrompt` parameter:
-
-```typescript
-import { fs } from 'node:fs/promises';
-import path from 'node:path';
-import os from 'node:os';
-
-async function loadMemory(agentId: string) {
-  const userMemoryPath = path.join(os.homedir(), '.deepagents', agentId, 'agent.md');
-  try {
-    return await fs.readFile(userMemoryPath, 'utf-8');
-  } catch {
-    return '';
-  }
-}
-
-const memory = await loadMemory('my-agent');
-const agent = createDeepAgent({
-  model: anthropic('claude-sonnet-4-20250514'),
-  systemPrompt: `You are a helpful assistant.\n\n${memory}`,
-});
-```
 
 ### Memory not loading
 
@@ -672,25 +549,42 @@ if (gitRoot) {
 
 **Q: Does the memory middleware work with DeepAgent?**
 
-A: Not yet. The current implementation of `createAgentMemoryMiddleware` is designed for direct AI SDK usage (`generateText`, `streamText`). DeepAgent uses ToolLoopAgent which passes the system prompt via `params.instructions` instead of `params.prompt`, so the middleware doesn't inject memory correctly.
+A: Yes! Simply pass the middleware to the `middleware` parameter:
 
-Use the manual memory loading workaround shown in the integration examples until DeepAgent compatibility is added.
+```typescript
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+
+const memoryMiddleware = createAgentMemoryMiddleware({ agentId: 'my-agent' });
+
+const agent = createDeepAgent({
+  model: anthropic('claude-sonnet-4-20250514'),
+  middleware: memoryMiddleware,
+});
+```
+
+The middleware automatically injects memory into the agent's system prompt on every call. See the [How It Works](#how-it-works) section for technical details.
 
 **Q: Can I use multiple agentIds in the same application?**
 
-A: Yes! You can create multiple middleware instances with different `agentId` values:
+A: Yes! You can create multiple agents with different memory configurations:
 
 ```typescript
-const researchModel = wrapLanguageModel({
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+
+const researchAgent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   middleware: createAgentMemoryMiddleware({ agentId: 'research-agent' }),
 });
 
-const codingModel = wrapLanguageModel({
+const codingAgent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   middleware: createAgentMemoryMiddleware({ agentId: 'coding-agent' }),
 });
 ```
+
+Each agent will have its own independent memory at `~/.deepagents/{agentId}/agent.md`.
 
 **Q: Can I manually edit memory files?**
 
@@ -702,27 +596,30 @@ A: Yes! Memory files are stored on disk and persist across restarts, unlike chec
 
 **Q: Can I use memory without skills?**
 
-A: Yes! Memory and skills are independent features. The `agentId` parameter only loads skills, not memory. To use memory, you must explicitly use `createAgentMemoryMiddleware`:
+A: Yes! Memory and skills are independent features. The `agentId` parameter controls skills loading, while middleware controls memory:
 
 ```typescript
-// Memory middleware only (for direct AI SDK usage)
-const model = wrapLanguageModel({
+import { createDeepAgent, createAgentMemoryMiddleware } from 'ai-sdk-deep-agent';
+import { anthropic } from '@ai-sdk/anthropic';
+
+// Memory only (no agentId, so no skills loaded)
+const memoryOnlyAgent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   middleware: createAgentMemoryMiddleware({ agentId: 'my-agent' }),
 });
 
-// Skills only (using agentId with DeepAgent)
-const agent = createDeepAgent({
+// Skills only (agentId without middleware)
+const skillsOnlyAgent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
   agentId: 'my-agent', // Loads skills from ~/.deepagents/my-agent/skills/
 });
 
-// Both memory and skills (for direct AI SDK usage)
-const model = wrapLanguageModel({
+// Both memory and skills
+const fullAgent = createDeepAgent({
   model: anthropic('claude-sonnet-4-20250514'),
-  middleware: createAgentMemoryMiddleware({ agentId: 'my-agent' }),
+  agentId: 'my-agent', // Loads skills
+  middleware: createAgentMemoryMiddleware({ agentId: 'my-agent' }), // Loads memory
 });
-// Then load skills separately with listSkills()
 ```
 
 **Q: Is memory secure?**
