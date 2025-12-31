@@ -1,0 +1,119 @@
+---
+title: The Pendulum Swing of LLM Frameworks
+description: From raw API calls to multi-agent swarms and back to simple loops
+author: Chris Pang
+date: 2026-01-01
+---
+
+Most agent architectures are overengineered. Claude Code's single-threaded while loop outperforms elaborate multi-agent orchestrations for the majority of real-world tasks. That's not a hot take. It's what the industry learned the hard way in 2024.
+
+I've been building agents since the early LangChain days. What I didn't expect was how the industry would swing from "raw dogging" APIs to black-box abstractions, then to DAG workflows, multi-agent teams, and now back to something that looks remarkably like where we started: a while loop with good tools.
+
+Here's the trajectory as I see it.
+
+## The Five Eras of LLM Frameworks
+
+### Era 1: No Frameworks (2022-2023)
+
+GPT-3.5-Turbo launched in March 2023 and developers did what developers do. We wrote raw API calls. `requests.post()` to OpenAI, parse the JSON, call it a day. Prompt engineering meant tweaking a string until the output looked right.
+
+No state management. No tool calling abstractions. No memory. Just vibes and print statements.
+
+### Era 2: Black-Box Agents (Early 2023)
+
+LangChain and LlamaIndex emerged with a compelling pitch: abstract away the complexity. Chains of thought, memory modules, agent executors. You could build a "ReAct agent" in 20 lines of code.
+
+The problem? Nobody understood what those 20 lines actually did. When agents failed (and they failed constantly), debugging meant staring into an abyss of nested abstractions. The convenience came at the cost of control.
+
+### Era 3: DAG Workflows (2024)
+
+The market corrected. Developers wanted their control back.
+
+[LangGraph launched in early 2024](https://blog.langchain.com/agent-frameworks-runtimes-and-harnesses-oh-my/) specifically to address what traditional DAG frameworks couldn't handle: cyclical, multi-turn processes. [LlamaIndex followed with Workflows in August 2024](https://www.llamaindex.ai/blog/introducing-workflows-beta-a-new-way-to-create-complex-ai-applications-with-llamaindex), offering event-driven orchestration.
+
+The insight was sound. Agents need loops for self-correction and iterative refinement. As the LlamaIndex team noted, ["the inability to perform loops in an AI application's logic is simply unacceptable"](https://www.zenml.io/blog/llamaindex-vs-langchain) for agentic workloads.
+
+But DAGs introduced their own complexity. State management, node definitions, edge routing. You traded black-box abstractions for a different kind of cognitive overhead.
+
+### Era 4: Multi-Agent Orchestration (2024)
+
+In parallel, the industry explored team-based approaches.
+
+[CrewAI launched in early 2024](https://www.datacamp.com/tutorial/crewai-vs-langgraph-vs-autogen), incubated by Andrew Ng's AI Fund. The framework treats agents like employees: each with roles, backstories, and task responsibilities. Microsoft's AutoGen took a different path, focusing on conversational collaboration between agents.
+
+The results were mixed. [CrewAI excels at enterprise automation](https://towardsai.net/p/machine-learning/autogen-vs-crewai-two-approaches-to-multi-agent-orchestration) where deterministic hand-offs matter. AutoGen offers flexibility for research prototypes. But both add coordination overhead that many tasks don't require.
+
+### Era 5: Agent Harnesses (2025)
+
+Then Claude Code happened.
+
+[Anthropic's architecture is almost aggressively simple](https://blog.promptlayer.com/claude-code-behind-the-scenes-of-the-master-agent-loop/): a single-threaded master loop with 14 tools. No critic pattern. No role-switching. No sophisticated memory system. Just `while(tool_use)` and disciplined tool design.
+
+The power comes from radical simplicity. As [PromptLayer](https://blog.promptlayer.com/claude-code-behind-the-scenes-of-the-master-agent-loop/) noted: "While competitors chase multi-agent swarms and complex orchestration, Anthropic built a single-threaded loop that does one thing obsessively well: think, act, observe, repeat."
+
+This pattern is now mainstream. [OpenAI launched Codex CLI in April 2025](https://openai.com/index/introducing-codex/), bringing the same terminal-based agent loop to their ecosystem. Then came the SDKs. [Anthropic released the Claude Agent SDK in September 2025](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk), giving developers the same infrastructure that powers Claude Code for building their own agents. OpenAI followed with the [Codex SDK](https://developers.openai.com/codex/guides/agents-sdk/), enabling MCP server integration and programmatic agent orchestration.
+
+[LangChain jumped on board with DeepAgents in July 2025](https://blog.langchain.com/deep-agents/), explicitly positioning it as a "general purpose version of Claude Code." The framework includes planning tools, filesystem backends, and subagent spawning. By October, they'd shipped [version 0.2 with pluggable backends](https://changelog.langchain.com/announcements/deepagents-0-2-release-for-more-autonomous-agents) for persistent memory across conversations.
+
+That's why we built this library. [ai-sdk-deep-agent](https://github.com/chrispangg/ai-sdk-deepagent) brings the Deep Agent pattern to Vercel's AI SDK ecosystem. Same principles: planning tools, virtual filesystem, subagent spawning, detailed prompting. Different foundation. If you're already using AI SDK, you shouldn't have to switch ecosystems to get the harness architecture that works.
+
+The harness model works because modern LLMs are genuinely capable. The bottleneck shifted from "can the model reason?" to "does the model have the right context and tools?"
+
+## What Comes Next
+
+The trajectory suggests a few directions.
+
+### Minimal abstractions, maximum trust
+
+Claude Code proved that simplicity wins. I expect the pendulum to keep swinging toward thin wrappers around model APIs, with escape hatches everywhere.
+
+Some will argue DAGs remain useful for deterministic workflows. Maybe. But even deterministic processes often benefit from exploration and self-correction phases. LLMs are getting quite good at following prompts. We don't need explicit state machines to enforce behavior as much as we used to.
+
+### Context engineering as a first-class concern
+
+[Andrej Karpathy endorsed "context engineering" over "prompt engineering"](https://x.com/karpathy/status/1937902205765607626?lang=en) in mid-2025, and he's right. Production agents spend far more effort on context window management than prompt crafting.
+
+His mental model: treat the LLM like a CPU and its context window as RAM. Your job as an engineer is to load that working memory with exactly what the next step needs. Too little context and performance suffers. Too much and costs balloon while relevance drops.
+
+Frameworks will increasingly prioritize compression strategies, intelligent summarization, and context utilization metrics. The bottleneck isn't model capability. It's context utilization.
+
+### Persistent agent memory
+
+AGENTS.md, CLAUDE.md, and skills specifications will become standard. [The Agent Skills standard](https://developers.openai.com/codex/skills), created by Anthropic in December 2025 and adopted by Microsoft, GitHub, Cursor, and others, points to this future.
+
+Agents that remember past projects, learn your codebase conventions, and improve over time will outperform stateless alternatives. Memory isn't a feature. It's a requirement.
+
+### Hybrid local/cloud architectures
+
+A wilder prediction: smaller local models for fast, cheap operations (file search, code navigation) paired with cloud models for complex reasoning.
+
+[The comparison between Claude Code and OpenAI Codex](https://northflank.com/blog/claude-code-vs-openai-codex) hints at this divergence. Claude emphasizes developer-in-the-loop local workflows. Codex supports autonomous cloud-based task delegation. Frameworks will eventually abstract the routing.
+
+## The Real Lesson
+
+Frameworks didn't get better. The industry figured out what actually matters.
+
+Black-box abstractions fail because they hide the wrong things. DAGs succeed for narrow use cases but add overhead for everything else. Multi-agent teams help when you genuinely need role specialization, not when you're hoping more agents means more capability.
+
+Simple loops work because they expose what matters: the model's reasoning, the tools it uses, and the context it receives. Everything else is overhead.
+
+Start with a while loop. Add complexity only when you can articulate why the simple approach failed.
+
+---
+
+**Sources:**
+- [Claude Code Agent Architecture: Single-Threaded Master Loop](https://www.zenml.io/llmops-database/claude-code-agent-architecture-single-threaded-master-loop-for-autonomous-coding) (ZenML)
+- [Claude Code: Behind-the-scenes of the master agent loop](https://blog.promptlayer.com/claude-code-behind-the-scenes-of-the-master-agent-loop/) (PromptLayer)
+- [Agent Frameworks, Runtimes, and Harnesses](https://blog.langchain.com/agent-frameworks-runtimes-and-harnesses-oh-my/) (LangChain)
+- [Deep Agents](https://blog.langchain.com/deep-agents/) (LangChain)
+- [DeepAgents 0.2 Release](https://changelog.langchain.com/announcements/deepagents-0-2-release-for-more-autonomous-agents) (LangChain)
+- [LlamaIndex Workflows Announcement](https://www.llamaindex.ai/blog/introducing-workflows-beta-a-new-way-to-create-complex-ai-applications-with-llamaindex) (LlamaIndex)
+- [LlamaIndex vs LangChain Framework Comparison](https://www.zenml.io/blog/llamaindex-vs-langchain) (ZenML)
+- [CrewAI vs LangGraph vs AutoGen](https://www.datacamp.com/tutorial/crewai-vs-langgraph-vs-autogen) (DataCamp)
+- [AutoGen vs CrewAI: Multi-Agent Orchestration](https://towardsai.net/p/machine-learning/autogen-vs-crewai-two-approaches-to-multi-agent-orchestration) (Towards AI)
+- [Andrej Karpathy on Context Engineering](https://x.com/karpathy/status/1937902205765607626?lang=en) (X/Twitter)
+- [Introducing Codex CLI](https://openai.com/index/introducing-codex/) (OpenAI)
+- [OpenAI Codex SDK](https://developers.openai.com/codex/guides/agents-sdk/) (OpenAI)
+- [Building Agents with the Claude Agent SDK](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk) (Anthropic)
+- [Agent Skills Standard](https://developers.openai.com/codex/skills) (OpenAI)
+- [Claude Code vs OpenAI Codex Comparison](https://northflank.com/blog/claude-code-vs-openai-codex) (Northflank)
