@@ -30,8 +30,9 @@ Is this for social media?
 │   └─ Tech community/casual → X/Twitter Style
 │
 └─ No → Is this a technical blog post?
-    ├─ Yes → What depth?
-    │   ├─ Deep technical analysis → Deep Technical Style
+    ├─ Yes → What voice/style?
+    │   ├─ Karpathy-style (conversational, personal, pragmatic) → Karpathy Style
+    │   ├─ Opinion-forward analysis → Deep Technical Style
     │   ├─ Lightweight explainer → Simplified Technical Style
     │   └─ Tutorial/how-to → Tutorial Style
     │
@@ -43,9 +44,46 @@ Is this for social media?
 
 ## Available Styles
 
-### 1. Deep Technical Style (Technical Blog Posts)
+### 1. Karpathy Style (Conversational Technical)
 
-**Use when:** Writing deep technical blog posts about AI, LLMs, agents, or engineering topics. Best for content targeting senior engineers who want genuine insight.
+**Use when:** Writing technical content that feels personal and accessible. Best for blog posts about AI/ML, tutorials, or technical essays where you want the voice of an expert friend explaining things over coffee.
+
+**Characteristics:**
+
+- First-person, conversational tone ("I've found that...", "Here's what I learned...")
+- Starts with personal experience or intriguing premise
+- Progressive complexity (simple → detailed)
+- Dry wit and occasional humor
+- Honest about limitations and failures
+- Pragmatic ("It only has to be right more often than not")
+- Numbered frameworks and structured approaches
+- Memorable, quotable lines
+
+**Load:** `references/karpathy-style.md` for comprehensive guidance
+
+**Core Philosophy:** "Don't be a hero. Start simple. Be patient."
+
+**Opening Hooks (choose one):**
+
+| Pattern | Example |
+|---------|---------|
+| Personal experience | "I still remember when I trained my first recurrent network..." |
+| Intriguing premise | "We're going to feed 2 million selfies to a neural network and have it tell us what makes a selfie good." |
+| Leaky abstraction | "Neural nets are not 'off-the-shelf' technology the second you deviate slightly from training an ImageNet classifier." |
+| Strong observation | "Trees are solidified air." |
+
+**Example opening:**
+> "I've trained a lot of neural networks over the years and I've come to find that the process isn't nearly as simple as it seems. They are a leaky abstraction. Here's what I've learned."
+
+**Tweet/X style (short-form):**
+- Pithy observations that compress insight
+- Strong statements (90% true, ignore counterexample police)
+- Unexpected connections between domains
+- Personal candor about struggles and discoveries
+
+### 2. Deep Technical Style (Opinion-Forward Analysis)
+
+**Use when:** Writing opinion-forward technical analysis about AI, LLMs, agents, or engineering topics. Best for content targeting senior engineers who want bold takes backed by evidence.
 
 **Characteristics:**
 
@@ -76,7 +114,7 @@ Is this for social media?
 **Example opening:**
 > "Most AI architectures are overengineered. A single-threaded loop often outperforms elaborate multi-agent orchestrations."
 
-### 2. LinkedIn Style
+### 3. LinkedIn Style
 
 **Use when:** Writing professional content for LinkedIn—thought leadership, announcements, industry insights.
 
@@ -120,7 +158,7 @@ Is this for social media?
 >
 > What's the biggest lesson you've learned shipping AI?
 
-### 3. X/Twitter Style
+### 4. X/Twitter Style
 
 **Use when:** Writing for X/Twitter—quick insights, hot takes, thread explainers, engagement posts.
 
@@ -155,7 +193,7 @@ N+1/ [Takeaway or call-to-action]
 >
 > Thread on when to use (and skip) RAG 🧵
 
-### 4. Simplified Technical Style
+### 5. Simplified Technical Style
 
 **Use when:** Writing accessible technical content for broader audiences—explainers, introductions, "what is X" posts.
 
@@ -171,7 +209,7 @@ N+1/ [Takeaway or call-to-action]
 
 > Every time you ask ChatGPT a question, something interesting happens behind the scenes. The AI doesn't just "know" the answer—it builds one, word by word, based on patterns it learned from millions of conversations.
 
-### 5. Tutorial Style
+### 6. Tutorial Style
 
 **Use when:** Writing step-by-step guides, how-tos, implementation walkthroughs.
 
@@ -206,7 +244,7 @@ N+1/ [Takeaway or call-to-action]
 [Where to go from here]
 ```
 
-### 6. Announcement Style
+### 7. Announcement Style
 
 **Use when:** Announcing features, releases, milestones, company news.
 
@@ -259,6 +297,15 @@ Apply the chosen style's characteristics from the start. Don't write generically
 ### Step 4: Review Against Style Checklist
 
 Each style has implicit requirements. Before finalizing:
+
+**Karpathy Style:**
+
+- [ ] First-person, conversational voice?
+- [ ] Opens with personal experience or intriguing premise?
+- [ ] Honest about limitations ("This might be wrong, but...")?
+- [ ] Progressive complexity (simple → detailed)?
+- [ ] Contains dry wit or memorable lines?
+- [ ] Pragmatic advice, not theoretical?
 
 **Deep Technical Style:**
 
@@ -323,6 +370,7 @@ Never use these overused AI words:
 
 ### references/
 
+- `karpathy-style.md` - Guide for writing in Andrej Karpathy's conversational, pragmatic technical style with blog post patterns, tweet patterns, and recurring themes
 - `deep-technical-style.md` - Comprehensive guide for opinion-forward technical blog posts with detailed examples, rhetorical techniques, and pre-publication checklist
 - `ai-slop-avoidance.md` - Detailed guide to avoiding AI-generated content patterns
 
